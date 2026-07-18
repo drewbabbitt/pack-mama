@@ -40,13 +40,13 @@
   <div style="position: absolute; inset: 0; background:
     linear-gradient(180deg, rgba(12,7,22,.93) 0%, rgba(14,8,26,.9) 45%, rgba(10,6,18,.95) 100%);"></div>
 
-  <!-- ===== PACK MAMA BANNER (always on top) ===== -->
-  <div style="flex: 0 0 auto; height: 148px; position: relative; z-index: 70;
-    background: url('./photos/packmama-banner.jpg') center / cover no-repeat #0c0913;
-    border-bottom: 3px solid #7a2fe0; box-shadow: 0 8px 28px rgba(0,0,0,.75);"></div>
+  <!-- ===== PACK MAMA BANNER (front layer, full art, zero crop) ===== -->
+  <div style="flex: 0 0 auto; width: 100%; aspect-ratio: 1800 / 535; position: relative; z-index: 70;
+    background: url('./photos/packmama-banner.jpg') center / 100% 100% no-repeat #0c0913;
+    border-bottom: 3px solid #f5b40a; box-shadow: 0 10px 32px rgba(0,0,0,.85);"></div>
 
   <!-- ===== MODE CONTROLS ===== -->
-  <div style="flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  <div style="flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 6px 12px;
     position: relative; z-index: 5; border-bottom: 1px solid rgba(158,94,255,.35);">
     <button onClick="{{ armSP }}" style="cursor: pointer; flex: 1 1 auto; border: 2px solid {{ spBorder }}; color: {{ spColor }};
       font-family: 'Anton'; font-size: 15px; letter-spacing: .5px; padding: 10px 6px; border-radius: 10px;
@@ -87,7 +87,7 @@
   </sc-if>
 
   <!-- ===== TICKER ===== -->
-  <div style="height: 36px; flex: 0 0 auto; display: flex; align-items: center; position: relative; z-index: 5;
+  <div style="height: 32px; flex: 0 0 auto; display: flex; align-items: center; position: relative; z-index: 5;
     background: #16092b; border-bottom: 2px solid #f5b40a; overflow: hidden;">
     <div style="flex: 0 0 auto; height: 100%; display: flex; align-items: center; gap: 7px;
       padding: 0 14px; background: #f5b40a; color: #1c1204; font-family: 'Anton'; letter-spacing: .5px;
@@ -151,12 +151,12 @@
   </div>
 
   <!-- ===== BOTTOM STRIP: COUNT | GIVVY | RECENT RIPS ===== -->
-  <div style="flex: 0 0 126px; display: flex; gap: 8px; padding: 0 12px 10px; position: relative; z-index: 5; min-height: 0;">
+  <div style="flex: 0 0 110px; display: flex; gap: 8px; padding: 0 12px 8px; position: relative; z-index: 5; min-height: 0;">
     <!-- count -->
     <div style="flex: 0 0 170px; background: rgba(24,13,44,.88); border: 2px solid rgba(158,94,255,.45); border-radius: 12px;
       padding: 10px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;">
-      <span style="font-family: 'Anton'; font-size: 44px; line-height: 1; color: #fff; background: #120a20;
-        padding: 4px 16px; border-radius: 8px; border: 2px solid #f5b40a; letter-spacing: 2px;">{{ remaining }}</span>
+      <span style="font-family: 'Anton'; font-size: 34px; line-height: 1; color: #fff; background: #120a20;
+        padding: 3px 14px; border-radius: 8px; border: 2px solid #f5b40a; letter-spacing: 2px;">{{ remaining }}</span>
       <div style="font-family: 'Anton'; font-size: 10px; letter-spacing: 2px; color: #cbb8ef;">ON THE BOARD / 30</div>
       <div style="height: 8px; width: 100%; border-radius: 5px; background: #120a20; overflow: hidden; border: 1px solid rgba(158,94,255,.4);">
         <div style="height: 100%; width: {{ pct }}%; background: linear-gradient(90deg,#7a2fe0,#f5b40a); transition: width .5s ease;"></div>
@@ -344,7 +344,7 @@
           animation: fwShoot {{ f.dur }} ease-out {{ f.delay }} infinite;"></span>
       </sc-for>
 
-      <button onClick="{{ closeOverlay }}" style="position: absolute; top: 158px; right: 20px; z-index: 6; cursor: pointer;
+      <button onClick="{{ closeOverlay }}" style="position: absolute; top: calc(100vw / 3.365 + 12px); right: 20px; z-index: 6; cursor: pointer;
         border: 1px solid rgba(255,255,255,.4); background: rgba(0,0,0,.45); color: #fff; width: 44px; height: 44px; border-radius: 50%; font-size: 20px;">✕</button>
 
       <div style="position: relative; z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 6px;">
