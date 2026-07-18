@@ -51,7 +51,7 @@
     <button onClick="{{ armSP }}" style="cursor: pointer; flex: 1 1 auto; border: 2px solid {{ spBorder }}; color: {{ spColor }};
       font-family: 'Anton'; font-size: 14px; letter-spacing: .5px; padding: 10px 4px; border-radius: 10px;
       background: {{ spBg }}; transition: filter .15s ease;" style-hover="filter: brightness(1.12);">
-      🧢 STASH · PASS
+      STASH · PASS
     </button>
     <button onClick="{{ armSee2 }}" style="cursor: pointer; flex: 1 1 auto; border: 2px solid {{ see2Border }}; color: {{ see2Color }};
       font-family: 'Anton'; font-size: 14px; letter-spacing: .5px; padding: 10px 4px; border-radius: 10px;
@@ -62,6 +62,11 @@
       font-family: 'Anton'; font-size: 14px; letter-spacing: .5px; padding: 10px 4px; border-radius: 10px;
       background: {{ see3Bg }}; transition: filter .15s ease;" style-hover="filter: brightness(1.12);">
       SEE 3 · PICK 1
+    </button>
+    <button onClick="{{ armHB }}" style="cursor: pointer; flex: 1 1 auto; border: 2px solid {{ hbBorder }}; color: {{ hbColor }};
+      font-family: 'Anton'; font-size: 14px; letter-spacing: .5px; padding: 10px 4px; border-radius: 10px;
+      background: {{ hbBg }}; transition: filter .15s ease;" style-hover="filter: brightness(1.12);">
+      HIGH BID
     </button>
 
     <!-- board count -->
@@ -75,10 +80,10 @@
 
     <button onClick="{{ openGivvy }}" style="cursor: pointer; border: 2px solid #f5b40a; background: rgba(245,180,10,.12);
       color: #f5b40a; font-family: 'Anton'; font-size: 13px; letter-spacing: .5px; padding: 0 12px; height: 44px;
-      border-radius: 10px; flex: 0 0 auto;" style-hover="background: rgba(245,180,10,.25);">🎁 GIVVY</button>
+      border-radius: 10px; flex: 0 0 auto;" style-hover="background: rgba(245,180,10,.25);">GIVVY</button>
     <button onClick="{{ openRips }}" style="cursor: pointer; border: 1px solid rgba(158,94,255,.5); background: rgba(30,18,52,.85);
       color: #f3edff; font-family: 'Anton'; font-size: 13px; letter-spacing: .5px; padding: 0 12px; height: 44px;
-      border-radius: 10px; flex: 0 0 auto;">👑 {{ winCount }}</button>
+      border-radius: 10px; flex: 0 0 auto;">WINS {{ winCount }}</button>
     <button onClick="{{ toggleSound }}" style="cursor: pointer; border: 1px solid rgba(158,94,255,.5); background: rgba(30,18,52,.85);
       color: #f3edff; font-size: 17px; width: 44px; height: 44px; border-radius: 10px; display: flex;
       align-items: center; justify-content: center; flex: 0 0 auto;">{{ soundIcon }}</button>
@@ -142,12 +147,6 @@
                 justify-content: center; padding: 5px; transition: transform .12s ease;"
                 style-hover="transform: translateY(-2px);">
                 <img src="{{ t.logo }}" alt="{{ t.name }}" style="width: 100%; height: 100%; object-fit: contain;" />
-
-                <sc-if value="{{ t.isStash }}" hint-placeholder-val="{{ false }}">
-                  <div style="position: absolute; top: 3px; right: 3px; background: #f5b40a; color: #1c1204;
-                    font-family: 'Anton'; font-size: 9px; letter-spacing: .5px; padding: 2px 6px; border-radius: 4px;
-                    z-index: 2; border: 1px solid #1c1204;">STASH</div>
-                </sc-if>
 
                 <sc-if value="{{ t.isWon }}" hint-placeholder-val="{{ false }}">
                   <div style="position: absolute; inset: 0; background: rgba(14,8,24,.87);
@@ -238,44 +237,58 @@
     </div>
   </sc-if>
 
-  <!-- ===== TEAM DETAIL POPUP (mode-driven: players + stash/pass/lock) ===== -->
+  <!-- ===== TEAM POPUP (big logo + top 3 chases, all flows) ===== -->
   <sc-if value="{{ detailTeam }}" hint-placeholder-val="{{ false }}">
     <div style="position: fixed; inset: 0; z-index: 45; background: rgba(8,4,16,.85);
       display: flex; align-items: center; justify-content: center; padding: 20px;">
-      <div style="width: min(520px, 94vw); border-radius: 16px; overflow: hidden; border: 3px solid #f5b40a;
+      <div style="width: min(560px, 94vw); border-radius: 18px; overflow: hidden; border: 3px solid #f5b40a;
         background: #170d29; box-shadow: 0 24px 70px rgba(0,0,0,.8), 0 0 40px rgba(122,47,224,.4); animation: rise .3s ease;">
-        <div style="padding: 18px; display: flex; align-items: center; gap: 14px; background: {{ detailTeam.color }};">
-          <div style="width: 64px; height: 64px; border-radius: 50%; background: #fff; display: flex; flex: 0 0 auto;
-            align-items: center; justify-content: center; padding: 8px; border: 2px solid rgba(0,0,0,.2);">
+        <div style="padding: 22px 18px 18px; display: flex; flex-direction: column; align-items: center; gap: 10px; background: {{ detailTeam.color }};">
+          <div style="width: 150px; height: 150px; border-radius: 50%; background: #fff; display: flex;
+            align-items: center; justify-content: center; padding: 18px; border: 3px solid rgba(0,0,0,.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,.45);">
             <img src="{{ detailTeam.logo }}" alt="{{ detailTeam.name }}" style="width: 100%; height: 100%; object-fit: contain;" /></div>
-          <div>
-            <div style="font-family: 'Anton'; font-size: 26px; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.6); letter-spacing: 1px;">{{ detailTeam.city }} {{ detailTeam.name }}</div>
-            <div style="font-family: 'Pacifico'; font-size: 14px; color: rgba(255,255,255,.9);">{{ detailKicker }}</div>
-          </div>
+          <div style="font-family: 'Anton'; font-size: 30px; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.6);
+            letter-spacing: 1px; text-align: center; line-height: 1;">{{ detailTeam.city }} {{ detailTeam.name }}</div>
+          <div style="font-family: 'Pacifico'; font-size: 15px; color: rgba(255,255,255,.92);">{{ detailKicker }}</div>
         </div>
         <div style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px;">
-          <div style="font-family: 'Anton'; font-size: 12px; letter-spacing: 3px; color: #f5b40a;">⭐ TOP CHASES THIS YEAR</div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-            <sc-for list="{{ detailPlayers }}" as="pl" hint-placeholder-count="4">
-              <div style="background: #120a20; border: 1px solid rgba(158,94,255,.45); border-radius: 8px; padding: 9px 12px;
-                font-family: 'Oswald'; font-weight: 600; font-size: 14px; color: #f3edff;">{{ pl }}</div>
+          <div style="font-family: 'Anton'; font-size: 12px; letter-spacing: 3px; color: #f5b40a; text-align: center;">TOP CHASES THIS YEAR</div>
+          <div style="display: flex; flex-direction: column; gap: 7px;">
+            <sc-for list="{{ detailPlayers }}" as="pl" hint-placeholder-count="3">
+              <div style="background: #120a20; border: 1px solid rgba(158,94,255,.45); border-radius: 9px; padding: 11px 14px;
+                font-family: 'Oswald'; font-weight: 600; font-size: 17px; color: #f3edff; text-align: center;">{{ pl }}</div>
             </sc-for>
           </div>
+          <sc-if value="{{ detailIsPlain }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ detailWin }}" style="cursor: pointer; border: 2px solid #fff; font-family: 'Anton'; font-size: 19px;
+              letter-spacing: 1px; color: #1c1204; background: linear-gradient(90deg,#f5b40a,#ffd257); padding: 15px; border-radius: 10px;
+              transition: filter .15s ease;" style-hover="filter: brightness(1.08);">MARK AS WON</button>
+          </sc-if>
+          <sc-if value="{{ detailIsWon }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ detailUndo }}" style="cursor: pointer; border: 2px solid #b5232d; background: rgba(181,35,45,.15);
+              color: #ff9d9d; font-family: 'Anton'; font-size: 16px; padding: 14px; border-radius: 10px;">PUT BACK ON BOARD</button>
+          </sc-if>
           <sc-if value="{{ detailIsSP1 }}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; gap: 10px;">
-              <button onClick="{{ detailStash }}" style="cursor: pointer; flex: 1; border: 2px solid #fff; font-family: 'Anton'; font-size: 18px;
+              <button onClick="{{ detailStash }}" style="cursor: pointer; flex: 1; border: 2px solid #fff; font-family: 'Anton'; font-size: 19px;
                 letter-spacing: 1px; color: #1c1204; background: linear-gradient(90deg,#f5b40a,#ffd257); padding: 14px; border-radius: 10px;
-                transition: filter .15s ease;" style-hover="filter: brightness(1.08);">💰 STASH IT</button>
-              <button onClick="{{ detailPass }}" style="cursor: pointer; flex: 1; border: 2px solid #9e5eff; font-family: 'Anton'; font-size: 18px;
+                transition: filter .15s ease;" style-hover="filter: brightness(1.08);">STASH IT</button>
+              <button onClick="{{ detailPass }}" style="cursor: pointer; flex: 1; border: 2px solid #9e5eff; font-family: 'Anton'; font-size: 19px;
                 letter-spacing: 1px; color: #e6d8ff; background: rgba(122,47,224,.35); padding: 14px; border-radius: 10px;
-                transition: filter .15s ease;" style-hover="filter: brightness(1.15);">🔄 PASS</button>
+                transition: filter .15s ease;" style-hover="filter: brightness(1.15);">PASS</button>
             </div>
             <div style="font-family: 'Oswald'; font-size: 12px; color: #9c8bbf; text-align: center;">pass = team goes back on the board · whatnot spins again · next spin is a blind keep</div>
           </sc-if>
           <sc-if value="{{ detailIsSP2 }}" hint-placeholder-val="{{ false }}">
-            <button onClick="{{ detailLock }}" style="cursor: pointer; border: 2px solid #fff; font-family: 'Anton'; font-size: 18px;
+            <button onClick="{{ detailLock }}" style="cursor: pointer; border: 2px solid #fff; font-family: 'Anton'; font-size: 19px;
               letter-spacing: 1px; color: #1c1204; background: linear-gradient(90deg,#f5b40a,#ffd257); padding: 14px; border-radius: 10px;
-              transition: filter .15s ease;" style-hover="filter: brightness(1.08);">🔒 LOCK IT IN — NO TAKEBACKS</button>
+              transition: filter .15s ease;" style-hover="filter: brightness(1.08);">LOCK IT IN — NO TAKEBACKS</button>
+          </sc-if>
+          <sc-if value="{{ detailIsAuction }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ detailBid }}" style="cursor: pointer; border: 2px solid #fff; font-family: 'Anton'; font-size: 19px;
+              letter-spacing: 1px; color: #fff; background: linear-gradient(90deg,#b5232d,#e04b3a); padding: 15px; border-radius: 10px;
+              transition: filter .15s ease;" style-hover="filter: brightness(1.1);">SOLD TO HIGHEST BIDDER</button>
           </sc-if>
           <button onClick="{{ detailCancel }}" style="cursor: pointer; border: none; background: transparent; color: #7c6b9e;
             font-family: 'Oswald'; font-weight: 600; font-size: 12px; letter-spacing: 1px; padding: 4px;">CANCEL</button>
@@ -290,7 +303,7 @@
       justify-content: center; gap: 20px; background: url('./photos/night.jpg') center / cover no-repeat; padding: 16px;">
       <div style="position: absolute; inset: 0; background: rgba(10,5,20,.88);"></div>
       <div style="position: relative; font-family: 'Anton'; font-size: 30px; letter-spacing: 2px; color: #f5b40a;
-        text-shadow: 0 2px 12px rgba(0,0,0,.8);">👑 BUYER'S CHOICE — PICK ONE</div>
+        text-shadow: 0 2px 12px rgba(0,0,0,.8);">BUYER'S CHOICE — PICK ONE</div>
       <div style="position: relative; display: flex; flex-direction: column; gap: 12px; width: min(560px, 94vw);">
         <sc-for list="{{ chooserTeams }}" as="p" hint-placeholder-count="2">
           <div onClick="{{ p.pick }}" style="cursor: pointer; border-radius: 14px; background: {{ p.color }};
@@ -302,46 +315,13 @@
               <img src="{{ p.logo }}" alt="{{ p.name }}" style="width: 100%; height: 100%; object-fit: contain;" /></div>
             <div style="min-width: 0;">
               <div style="font-family: 'Anton'; font-size: 22px; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.6); letter-spacing: 1px;">{{ p.city }} {{ p.name }}</div>
-              <div style="font-family: 'Oswald'; font-weight: 600; font-size: 13px; color: rgba(255,255,255,.92);">⭐ {{ p.playerLine }}</div>
+              <div style="font-family: 'Oswald'; font-weight: 600; font-size: 13px; color: rgba(255,255,255,.92);">{{ p.playerLine }}</div>
             </div>
           </div>
         </sc-for>
       </div>
       <button onClick="{{ chooserCancel }}" style="position: relative; cursor: pointer; border: 1px solid rgba(158,94,255,.6); background: transparent;
         color: #cbb8ef; font-family: 'Anton'; font-size: 13px; letter-spacing: 2px; padding: 10px 24px; border-radius: 8px;">CANCEL</button>
-    </div>
-  </sc-if>
-
-  <!-- ===== ACTION MODAL (no mode armed) ===== -->
-  <sc-if value="{{ actionTeam }}" hint-placeholder-val="{{ false }}">
-    <div onClick="{{ closeAction }}" style="position: fixed; inset: 0; z-index: 40; background: rgba(8,4,16,.8);
-      display: flex; align-items: center; justify-content: center;">
-      <div style="width: 340px; border-radius: 14px; overflow: hidden; border: 3px solid #9e5eff;
-        background: #170d29; box-shadow: 0 24px 60px rgba(0,0,0,.8);">
-        <div style="padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 6px;
-          background: {{ actionTeam.color }};">
-          <div style="width: 60px; height: 60px; border-radius: 50%; background: #fff; display: flex;
-            align-items: center; justify-content: center; padding: 7px; border: 2px solid rgba(0,0,0,.2);">
-            <img src="{{ actionTeam.logo }}" alt="{{ actionTeam.name }}" style="width: 100%; height: 100%; object-fit: contain;" /></div>
-          <div style="font-family: 'Anton'; font-size: 22px; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.6); letter-spacing: 1px;">{{ actionTeam.name }}</div>
-          <div style="font-family: 'Oswald'; font-weight: 500; font-size: 12px; letter-spacing: 3px; color: rgba(255,255,255,.85);">{{ actionTeam.city }}</div>
-        </div>
-        <div style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
-          <sc-if value="{{ actionIsWon }}" hint-placeholder-val="{{ false }}">
-            <button onClick="{{ undoTeam }}" style="cursor: pointer; border: 2px solid #b5232d; background: rgba(181,35,45,.15);
-              color: #ff9d9d; font-family: 'Anton'; font-size: 15px; padding: 14px; border-radius: 10px;">↩ PUT BACK ON BOARD</button>
-          </sc-if>
-          <sc-if value="{{ actionIsAvail }}" hint-placeholder-val="{{ false }}">
-            <button onClick="{{ startWin }}" style="cursor: pointer; border: 2px solid #fff; color: #1c1204; font-family: 'Anton';
-              font-size: 17px; padding: 15px; border-radius: 10px; background: linear-gradient(90deg,#f5b40a,#ffd257);
-              transition: filter .15s ease;" style-hover="filter: brightness(1.08);">👑 MARK AS SOLD</button>
-            <button onClick="{{ toggleStash }}" style="cursor: pointer; border: 2px solid #9e5eff; background: rgba(122,47,224,.25);
-              color: #e6d8ff; font-family: 'Anton'; font-size: 14px; padding: 13px; border-radius: 10px;">{{ stashLabel }}</button>
-          </sc-if>
-          <button onClick="{{ closeAction }}" style="cursor: pointer; border: none; background: transparent; color: #7c6b9e;
-            font-family: 'Oswald'; font-weight: 600; font-size: 13px; letter-spacing: 1px; padding: 6px;">CANCEL</button>
-        </div>
-      </div>
     </div>
   </sc-if>
 
@@ -385,14 +365,14 @@
           <div style="display: flex; flex-direction: column; align-items: center; gap: 14px; animation: rise .5s ease both;">
             <div style="font-family: 'Anton'; font-size: 24px; text-align: center; color: #fff; background: rgba(12,6,24,.6);
               padding: 14px 24px; border-radius: 12px; border: 3px solid #f5b40a; letter-spacing: 1px;">
-              <span style="color: #f5b40a;">{{ overlayWinner }}</span> WON THE {{ overlayTeamUpper }}! 👑
+              <span style="color: #f5b40a;">{{ overlayWinner }}</span> {{ overlayWinVerb }} THE {{ overlayTeamUpper }}!
             </div>
             <div style="font-family: 'Oswald'; font-weight: 600; font-size: 12px; letter-spacing: 2px; color: rgba(255,255,255,.75);">LOCKED ON THE BOARD ✓</div>
           </div>
         </sc-if>
         <sc-if value="{{ overlayEntering }}" hint-placeholder-val="{{ true }}">
           <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
-            <div style="font-family: 'Anton'; font-size: 14px; letter-spacing: 4px; color: rgba(255,255,255,.92);">WHO WON IT?</div>
+            <div style="font-family: 'Anton'; font-size: 14px; letter-spacing: 4px; color: rgba(255,255,255,.92);">{{ overlayPrompt }}</div>
             <div style="display: flex; gap: 10px; width: 100%;">
               <input value="{{ overlayWinner }}" onChange="{{ setWinnerName }}" onKeyDown="{{ winnerKey }}"
                 placeholder="enter winner username" autofocus
@@ -400,7 +380,7 @@
                 color: #fff; font-family: 'Anton'; font-size: 18px; padding: 13px 16px; outline: none; text-align: center; letter-spacing: 1px;" />
               <button onClick="{{ crownWinner }}" style="cursor: pointer; border: 2px solid #fff; font-family: 'Anton'; font-size: 16px;
                 color: #1c1204; background: linear-gradient(90deg,#f5b40a,#ffd257); padding: 0 24px; border-radius: 10px;
-                transition: filter .15s ease;" style-hover="filter: brightness(1.08);">WON 👑</button>
+                transition: filter .15s ease;" style-hover="filter: brightness(1.08);">WON</button>
             </div>
           </div>
         </sc-if>
@@ -543,7 +523,9 @@ class Component extends DCLogic {
       this.setState(s => ({
         teams: s.teams.map(t => {
           const m = (d.teams || []).find(x => x.id === t.id);
-          return m ? { ...t, status: m.status, winner: m.winner } : t;
+          if (!m) return t;
+          const st = m.status === 'stashed' ? 'available' : m.status;
+          return { ...t, status: st, winner: m.winner };
         }),
         wins: d.wins || [],
       }));
@@ -584,18 +566,22 @@ class Component extends DCLogic {
   armMode(m) {
     this.sfx('click');
     if (this.state.mode === m) { this.clearMode(); return; }
-    this.setState({ mode: m, spStage: m === 'sp' ? 'first' : null, spFirstId: null, queue: [], detail: null, chooser: null, action: null });
+    this.setState({ mode: m, spStage: m === 'sp' ? 'first' : null, spFirstId: null, queue: [], detail: null, chooser: null });
   }
 
-  // ---------- tile taps ----------
+  // ---------- tile taps (everything opens the big team popup) ----------
   selectTeam(id) {
     const s = this.state;
     const t = s.teams.find(x => x.id === id);
     if (!t) return;
     this.sfx('click');
-    if (t.status === 'won') { this.setState({ action: id }); return; }
+    if (t.status === 'won') { this.setState({ detail: { teamId: id, kind: 'won' } }); return; }
     if (s.mode === 'sp') {
       this.setState({ detail: { teamId: id, kind: s.spStage === 'second' ? 'sp2' : 'sp1' } });
+      return;
+    }
+    if (s.mode === 'auction') {
+      this.setState({ detail: { teamId: id, kind: 'auction' } });
       return;
     }
     if (s.mode === 'see2' || s.mode === 'see3') {
@@ -606,15 +592,19 @@ class Component extends DCLogic {
       else this.setState({ queue: q });
       return;
     }
-    this.setState({ action: id });
+    this.setState({ detail: { teamId: id, kind: 'plain' } });
   }
 
-  // ---------- stash/pass detail ----------
+  // ---------- team popup actions ----------
+  toOverlay(teamId, auction) {
+    this.sfx('coin');
+    this.setState({ detail: null, overlay: { teamId, winner: '', announced: false, auction: !!auction } });
+  }
+  detailWin() { const d = this.state.detail; if (d) this.toOverlay(d.teamId, false); }
   detailStash() {
     const d = this.state.detail; if (!d) return;
-    this.sfx('coin');
-    this.setState({ detail: null, mode: null, spStage: null, spFirstId: null,
-      overlay: { teamId: d.teamId, winner: '', announced: false } });
+    this.setState({ mode: null, spStage: null, spFirstId: null });
+    this.toOverlay(d.teamId, false);
   }
   detailPass() {
     const d = this.state.detail; if (!d) return;
@@ -623,9 +613,16 @@ class Component extends DCLogic {
   }
   detailLock() {
     const d = this.state.detail; if (!d) return;
-    this.sfx('coin');
-    this.setState({ detail: null, mode: null, spStage: null, spFirstId: null,
-      overlay: { teamId: d.teamId, winner: '', announced: false } });
+    this.setState({ mode: null, spStage: null, spFirstId: null });
+    this.toOverlay(d.teamId, false);
+  }
+  detailBid() { const d = this.state.detail; if (d) this.toOverlay(d.teamId, true); }  // HIGH BID switch stays on
+  detailUndo() {
+    const d = this.state.detail; if (!d) return;
+    this.sfx('click');
+    this.setState(s => ({ detail: null, teams: s.teams.map(t => t.id === d.teamId ? { ...t, status: 'available', winner: null } : t),
+      wins: s.wins.filter(w => w.id !== d.teamId) }));
+    setTimeout(() => this.persist(), 0);
   }
   detailCancel() { this.setState({ detail: null }); }
 
@@ -633,27 +630,9 @@ class Component extends DCLogic {
   pickFromChooser(id) {
     this.sfx('coin');
     this.setState({ chooser: null, queue: [], mode: null,
-      overlay: { teamId: id, winner: '', announced: false } });
+      overlay: { teamId: id, winner: '', announced: false, auction: false } });
   }
   chooserCancel() { this.clearMode(); }
-
-  // ---------- default action modal ----------
-  closeAction() { this.setState({ action: null }); }
-  toggleStash() {
-    const id = this.state.action; this.sfx('coin');
-    this.setState(s => ({ action: null, teams: s.teams.map(t => t.id === id ? { ...t, status: t.status === 'stashed' ? 'available' : 'stashed' } : t) }));
-    setTimeout(() => this.persist(), 0);
-  }
-  undoTeam() {
-    const id = this.state.action; this.sfx('click');
-    this.setState(s => ({ action: null, teams: s.teams.map(t => t.id === id ? { ...t, status: 'available', winner: null } : t),
-      wins: s.wins.filter(w => w.id !== id) }));
-    setTimeout(() => this.persist(), 0);
-  }
-  startWin() {
-    const id = this.state.action; this.sfx('coin');
-    this.setState({ action: null, overlay: { teamId: id, winner: '', announced: false } });
-  }
 
   // ---------- winner flow ----------
   setWinnerName(e) { const v = e.target.value; this.setState(s => ({ overlay: { ...s.overlay, winner: v } })); }
@@ -668,7 +647,7 @@ class Component extends DCLogic {
       const name = o.winner.trim();
       return {
         overlay: { ...s.overlay, announced: true },
-        saleFocus: '🔥 ' + name + ' WON THE ' + t.name.toUpperCase() + '!',
+        saleFocus: '🔥 ' + name + (o.auction ? ' TOOK THE ' + t.name.toUpperCase() + ' AUCTION!' : ' WON THE ' + t.name.toUpperCase() + '!'),
         teams: s.teams.map(x => x.id === o.teamId ? { ...x, status: 'won', winner: name } : x),
         wins: [{ id: t.id, abbr: t.abbr, color: t.color, team: t.name, winner: name }, ...s.wins],
       };
@@ -732,7 +711,7 @@ class Component extends DCLogic {
     if (this.overlayTimer) { clearTimeout(this.overlayTimer); this.overlayTimer = null; }
     this.clearPersist();
     this.setState(s => ({ teams: s.teams.map(t => ({ ...t, status: 'available', winner: null })), wins: [],
-      overlay: null, action: null, mode: null, spStage: null, spFirstId: null, queue: [], detail: null, chooser: null,
+      overlay: null, mode: null, spStage: null, spFirstId: null, queue: [], detail: null, chooser: null,
       saleFocus: null, givvyOpen: false, ripsOpen: false }));
   }
   componentWillUnmount() {
@@ -745,7 +724,7 @@ class Component extends DCLogic {
   renderVals() {
     const s = this.state;
     const withLogo = (t) => t ? { ...t, logo: this.logoUrl(t.abbr) } : t;
-    const mapT = (t) => ({ ...withLogo(t), isWon: t.status === 'won', isStash: t.status === 'stashed',
+    const mapT = (t) => ({ ...withLogo(t), isWon: t.status === 'won',
       border: (s.queue.indexOf(t.id) !== -1) ? '#f5b40a' : t.color,
       select: () => this.selectTeam(t.id) });
     const byDiv = {};
@@ -773,7 +752,6 @@ class Component extends DCLogic {
     }
     const tickerLoop = items.concat(items);
 
-    const actionT = s.action ? withLogo(s.teams.find(t => t.id === s.action)) : null;
     const overlayT = s.overlay ? withLogo(s.teams.find(t => t.id === s.overlay.teamId)) : null;
     const detailT = s.detail ? withLogo(s.teams.find(t => t.id === s.detail.teamId)) : null;
 
@@ -787,6 +765,8 @@ class Component extends DCLogic {
     } else if (s.mode === 'see2' || s.mode === 'see3') {
       const need = s.mode === 'see2' ? 2 : 3;
       instruction = 'TAP SPUN TEAM ' + Math.min(s.queue.length + 1, need) + ' OF ' + need + ' — BUYER PICKS ONE';
+    } else if (s.mode === 'auction') {
+      instruction = 'HIGH BID ON — TAP THE TEAM UP FOR AUCTION';
     }
     const queueTeams = s.queue.map(id => withLogo(s.teams.find(t => t.id === id)));
 
@@ -823,12 +803,15 @@ class Component extends DCLogic {
       });
     }
 
-    const modeBtn = (m, on) => ({
+    const modeBtn = (on) => ({
       bg: on ? 'linear-gradient(90deg,#7a2fe0,#9e5eff)' : 'rgba(30,18,52,.85)',
       color: on ? '#fff' : '#cbb8ef',
       border: on ? '#f5b40a' : 'rgba(158,94,255,.5)',
     });
-    const spB = modeBtn('sp', s.mode === 'sp'), s2B = modeBtn('see2', s.mode === 'see2'), s3B = modeBtn('see3', s.mode === 'see3');
+    const spB = modeBtn(s.mode === 'sp'), s2B = modeBtn(s.mode === 'see2'), s3B = modeBtn(s.mode === 'see3');
+    const hbB = s.mode === 'auction'
+      ? { bg: 'linear-gradient(90deg,#b5232d,#e04b3a)', color: '#fff', border: '#f5b40a' }
+      : { bg: 'rgba(30,18,52,.85)', color: '#cbb8ef', border: 'rgba(158,94,255,.5)' };
 
     return {
       divisions, remaining, pct, tickerLoop,
@@ -837,31 +820,40 @@ class Component extends DCLogic {
       resetBoard: () => this.resetBoard(),
 
       armSP: () => this.armMode('sp'), armSee2: () => this.armMode('see2'), armSee3: () => this.armMode('see3'),
+      armHB: () => this.armMode('auction'),
       spBg: spB.bg, spColor: spB.color, spBorder: spB.border,
       see2Bg: s2B.bg, see2Color: s2B.color, see2Border: s2B.border,
       see3Bg: s3B.bg, see3Color: s3B.color, see3Border: s3B.border,
+      hbBg: hbB.bg, hbColor: hbB.color, hbBorder: hbB.border,
       hasInstruction: !!instruction, instruction, queueTeams,
 
       detailTeam: detailT,
-      detailPlayers: detailT ? this.players(detailT.abbr) : [],
-      detailKicker: s.detail && s.detail.kind === 'sp2' ? 'second spin — blind keep!' : 'stash it… or pass it?',
+      detailPlayers: detailT ? this.players(detailT.abbr).slice(0, 3) : [],
+      detailKicker: (function(k){
+        if (k === 'sp1') return 'stash it… or pass it?';
+        if (k === 'sp2') return 'second spin — blind keep';
+        if (k === 'auction') return 'up for auction — highest bid takes it';
+        if (k === 'won') return 'won by ' + (detailT && detailT.winner ? detailT.winner : '');
+        return 'up on the board';
+      })(s.detail ? s.detail.kind : ''),
+      detailIsPlain: !!(s.detail && s.detail.kind === 'plain'),
+      detailIsWon: !!(s.detail && s.detail.kind === 'won'),
       detailIsSP1: !!(s.detail && s.detail.kind === 'sp1'),
       detailIsSP2: !!(s.detail && s.detail.kind === 'sp2'),
+      detailIsAuction: !!(s.detail && s.detail.kind === 'auction'),
+      detailWin: () => this.detailWin(), detailUndo: () => this.detailUndo(),
       detailStash: () => this.detailStash(), detailPass: () => this.detailPass(),
-      detailLock: () => this.detailLock(), detailCancel: () => this.detailCancel(),
+      detailLock: () => this.detailLock(), detailBid: () => this.detailBid(),
+      detailCancel: () => this.detailCancel(),
 
       hasChooser: !!(s.chooser && s.chooser.length), chooserTeams, chooserCancel: () => this.chooserCancel(),
 
       wins: s.wins.map(w => ({ ...w, logo: this.logoUrl(w.abbr) })), winCount: s.wins.length, noWins: s.wins.length === 0,
 
-      actionTeam: actionT, actionIsWon: !!(actionT && actionT.status === 'won'),
-      actionIsAvail: !!(actionT && actionT.status !== 'won'),
-      stashLabel: actionT && actionT.status === 'stashed' ? '↩ UNSTASH' : '🧢 STASH FOR LATER',
-      startWin: () => this.startWin(), toggleStash: () => this.toggleStash(),
-      undoTeam: () => this.undoTeam(), closeAction: () => this.closeAction(),
-
       overlayTeam: overlayT,
       overlayTeamUpper: overlayT ? overlayT.name.toUpperCase() : '',
+      overlayPrompt: s.overlay && s.overlay.auction ? 'WHO WON THE BID?' : 'WHO WON IT?',
+      overlayWinVerb: s.overlay && s.overlay.auction ? 'TOOK' : 'WON',
       overlayWinner: s.overlay ? s.overlay.winner : '',
       overlayAnnounced: !!(s.overlay && s.overlay.announced),
       overlayEntering: !!(s.overlay && !s.overlay.announced),
