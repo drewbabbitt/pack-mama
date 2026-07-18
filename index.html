@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Graduate&family=Anton&family=Barlow+Condensed:wght@500;600;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #0b1c11; overflow: hidden;
+    -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none;
+    touch-action: manipulation; }
+  a { color: #f2e8cf; text-decoration: none; }
+  input { font-family: inherit; }
+  img { -webkit-user-drag: none; }
+  @keyframes tickerScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @keyframes rise { 0% { transform: translateY(30px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+  @keyframes logoPop { 0% { transform: scale(0) rotate(-25deg); opacity: 0; } 55% { transform: scale(1.15) rotate(5deg); opacity: 1; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+  @keyframes confettiFall { 0% { transform: translateY(-20vh) rotate(0); opacity: 1; } 100% { transform: translateY(120vh) rotate(720deg); opacity: 1; } }
+</style>
+</helmet>
+
+<div style="height: 100vh; display: flex; flex-direction: column; color: #f2e8cf;
+  font-family: 'Oswald', sans-serif; overflow: hidden; position: relative;
+  background: url('./photos/stands.jpg') center 30% / cover no-repeat #0b1c11;">
+
+  <!-- photo dimmer so the board reads on stream -->
+  <div style="position: absolute; inset: 0; background:
+    linear-gradient(180deg, rgba(7,20,12,.88) 0%, rgba(7,20,12,.82) 40%, rgba(7,20,12,.9) 100%);"></div>
+
+  <!-- ===== SCOREBOARD MARQUEE ===== -->
+  <div style="height: 48px; flex: 0 0 auto; display: flex; align-items: center; position: relative; z-index: 5;
+    background: #10281a; border-bottom: 3px double #f2e8cf; overflow: hidden;">
+    <div style="flex: 0 0 auto; height: 100%; display: flex; align-items: center; gap: 8px;
+      padding: 0 18px; background: #b53329; color: #fffdf5; font-family: 'Graduate'; letter-spacing: 1px;
+      font-size: 14px; z-index: 2; border-right: 2px solid #f2e8cf;">
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: #fffdf5;"></span>
+      LIVE
+    </div>
+    <div style="flex: 1 1 auto; overflow: hidden;">
+      <div style="display: inline-flex; white-space: nowrap; animation: tickerScroll 55s linear infinite; will-change: transform;">
+        <sc-for list="{{ tickerLoop }}" as="ti" hint-placeholder-count="8">
+          <span style="display: inline-flex; align-items: center; font-family: 'Graduate';
+            font-size: 14px; letter-spacing: 1.5px; padding: 0 26px; color: {{ ti.color }};">
+            <span style="opacity: .55; color: #d9a441; margin-right: 26px; font-size: 11px;">⚾</span>{{ ti.text }}
+          </span>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== HEADER ===== -->
+  <div style="flex: 0 0 auto; display: flex; align-items: center; gap: 16px; padding: 14px 22px;
+    position: relative; z-index: 5; border-bottom: 2px solid rgba(242,232,207,.35);">
+    <div style="display: flex; flex-direction: column; line-height: 1;">
+      <div style="font-family: 'Graduate'; font-size: 30px; letter-spacing: 2px; color: #fffdf5;
+        text-shadow: 0 2px 10px rgba(0,0,0,.8);">DIAMOND <span style="color: #d9a441;">SPINNER</span></div>
+      <div style="font-family: 'Oswald'; font-weight: 500; font-size: 12px; letter-spacing: 6px; color: #cbbf9e; margin-top: 4px;">LIVE TEAM BREAKS</div>
+    </div>
+
+    <div style="flex: 1 1 auto;"></div>
+
+    <button onClick="{{ spinWheel }}" style="cursor: pointer; border: 2px solid #f2e8cf; color: #fffdf5;
+      font-family: 'Graduate'; font-size: 15px; letter-spacing: 1px; padding: 12px 22px; border-radius: 8px;
+      background: #b53329; box-shadow: 0 4px 14px rgba(0,0,0,.5); transition: filter .15s ease;"
+      style-hover="filter: brightness(1.12);">
+      ⚾ SPIN THE DIAMOND
+    </button>
+
+    <button onClick="{{ pick3 }}" style="cursor: pointer; border: 2px solid #d9a441; background: rgba(217,164,65,.12);
+      color: #d9a441; font-family: 'Graduate'; font-size: 13px; letter-spacing: 1px; padding: 12px 18px; border-radius: 8px;"
+      style-hover="background: rgba(217,164,65,.25);">
+      SEE 3 · PICK 1
+    </button>
+
+    <button onClick="{{ toggleSound }}" style="cursor: pointer; border: 1px solid rgba(242,232,207,.4); background: rgba(16,40,26,.8);
+      color: #f2e8cf; font-size: 19px; width: 46px; height: 46px; border-radius: 8px; display: flex;
+      align-items: center; justify-content: center;">{{ soundIcon }}</button>
+
+    <button onClick="{{ resetBoard }}" style="cursor: pointer; border: 1px solid rgba(242,232,207,.4); background: rgba(16,40,26,.8);
+      color: #f2e8cf; font-family: 'Oswald'; font-weight: 600; font-size: 13px; letter-spacing: 1px;
+      padding: 0 16px; height: 46px; border-radius: 8px;"
+      style-hover="border-color:#b53329; color:#e8a49e;">RESET</button>
+  </div>
+
+  <!-- ===== BODY ===== -->
+  <div style="flex: 1 1 auto; display: flex; gap: 14px; padding: 14px; min-height: 0; position: relative; z-index: 5;">
+
+    <!-- GRID -->
+    <div style="flex: 1 1 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; min-height: 0;">
+      <sc-for list="{{ leagues }}" as="lg" hint-placeholder-count="2">
+        <div style="display: flex; flex-direction: column; gap: 10px; min-height: 0;
+          background: rgba(13,32,20,.88); border: 2px solid rgba(242,232,207,.3); border-radius: 10px; padding: 12px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-family: 'Graduate'; font-size: 16px; letter-spacing: 2px; color: {{ lg.color }};">{{ lg.name }}</span>
+            <span style="flex: 1; height: 2px; background: repeating-linear-gradient(90deg, rgba(242,232,207,.45) 0 10px, transparent 10px 18px);"></span>
+          </div>
+          <sc-for list="{{ lg.divisions }}" as="dv" hint-placeholder-count="3">
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <div style="font-family: 'Graduate'; font-size: 10px; letter-spacing: 4px; color: #cbbf9e;">{{ dv.label }}</div>
+              <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
+                <sc-for list="{{ dv.teams }}" as="t" hint-placeholder-count="5">
+                  <div onClick="{{ t.select }}" style="position: relative; cursor: pointer; border-radius: 8px;
+                    overflow: hidden; min-height: 88px; display: flex; flex-direction: column; align-items: center;
+                    justify-content: center; gap: 6px; padding: 8px 4px; background: {{ t.color }};
+                    border: 2px solid rgba(255,253,245,.35); box-shadow: 0 4px 10px rgba(0,0,0,.5);
+                    transition: transform .12s ease;" style-hover="transform: translateY(-3px);">
+                    <div style="width: 42px; height: 42px; border-radius: 50%; background: #fffdf5; display: flex;
+                      align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,.45); z-index: 1; padding: 5px;
+                      border: 2px solid rgba(0,0,0,.15);">
+                      <img src="{{ t.logo }}" alt="{{ t.name }}" style="width: 100%; height: 100%; object-fit: contain;" /></div>
+                    <div style="font-family: 'Barlow Condensed'; font-weight: 700; font-size: 12.5px; line-height: 1.02;
+                      text-transform: uppercase; letter-spacing: .3px; text-align: center; color: #fffdf5; max-width: 100%;
+                      overflow-wrap: anywhere; text-shadow: 0 1px 4px rgba(0,0,0,.7); z-index: 1;">{{ t.name }}</div>
+
+                    <sc-if value="{{ t.isStash }}" hint-placeholder-val="{{ false }}">
+                      <div style="position: absolute; top: 5px; right: 5px; background: #d9a441; color: #241a05;
+                        font-family: 'Graduate'; font-size: 8px; letter-spacing: .5px; padding: 2px 6px; border-radius: 4px;
+                        z-index: 2; border: 1px solid #fffdf5;">STASH</div>
+                    </sc-if>
+
+                    <sc-if value="{{ t.isWon }}" hint-placeholder-val="{{ false }}">
+                      <div style="position: absolute; inset: 0; background: rgba(10,20,13,.82); backdrop-filter: grayscale(1) sepia(.25);
+                        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; z-index: 3;">
+                        <div style="font-family: 'Graduate'; font-size: 14px; color: #f2e8cf; border: 2px solid #f2e8cf;
+                          border-radius: 4px; padding: 2px 8px; transform: rotate(-8deg); letter-spacing: 2px;">SOLD</div>
+                        <div style="font-family: 'Oswald'; font-weight: 600; font-size: 10px; color: #cbbf9e;
+                          text-align: center; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ t.winner }}</div>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div style="flex: 0 0 300px; display: flex; flex-direction: column; gap: 12px; min-height: 0;">
+
+      <!-- scoreboard count -->
+      <div style="background: rgba(13,32,20,.88); border: 2px solid rgba(242,232,207,.3);
+        border-radius: 10px; padding: 14px 16px;">
+        <div style="font-family: 'Graduate'; font-size: 10px; letter-spacing: 4px; color: #cbbf9e;">ON THE BOARD</div>
+        <div style="display: flex; align-items: baseline; gap: 10px; margin: 6px 0 10px;">
+          <span style="font-family: 'Anton'; font-size: 50px; line-height: .9; color: #fffdf5; background: #0a150d;
+            padding: 4px 14px; border-radius: 6px; border: 2px solid rgba(242,232,207,.35);
+            letter-spacing: 4px;">{{ remaining }}</span>
+          <span style="font-family: 'Graduate'; font-size: 13px; color: #cbbf9e;">/ 30 TEAMS</span>
+        </div>
+        <div style="height: 10px; border-radius: 5px; background: #0a150d; overflow: hidden; border: 1px solid rgba(242,232,207,.3);">
+          <div style="height: 100%; width: {{ pct }}%; background: #b53329; transition: width .5s ease;"></div>
+        </div>
+      </div>
+
+      <!-- givvy drop -->
+      <div style="background: rgba(13,32,20,.88); border: 2px solid rgba(242,232,207,.3);
+        border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 16px;">🧢</span>
+          <span style="font-family: 'Graduate'; font-size: 15px; letter-spacing: 1px; color: #d9a441;">GIVVY DROP</span>
+        </div>
+
+        <!-- source toggle -->
+        <div style="display: flex; gap: 6px; background: #0a150d; border: 1px solid rgba(242,232,207,.3); border-radius: 8px; padding: 4px;">
+          <button onClick="{{ setBuyersMode }}" style="cursor: pointer; flex: 1; border: none; border-radius: 6px; padding: 8px 6px;
+            font-family: 'Graduate'; font-size: 11px; letter-spacing: .5px; color: {{ buyersTabColor }}; background: {{ buyersTabBg }};">
+            🎟 BUYERS · {{ buyersCount }}</button>
+          <button onClick="{{ setFollowersMode }}" style="cursor: pointer; flex: 1; border: none; border-radius: 6px; padding: 8px 6px;
+            font-family: 'Graduate'; font-size: 11px; letter-spacing: .5px; color: {{ followersTabColor }}; background: {{ followersTabBg }};">
+            FOLLOWERS</button>
+        </div>
+
+        <div style="min-height: 46px; border-radius: 8px; background: #0a150d; border: 2px dashed rgba(242,232,207,.4);
+          display: flex; align-items: center; justify-content: center; text-align: center; padding: 6px;
+          font-family: 'Graduate'; font-size: 16px; color: {{ givvyColor }}; letter-spacing: 1px;">{{ givvyDisplayText }}</div>
+
+        <sc-if value="{{ isBuyersMode }}" hint-placeholder-val="{{ true }}">
+          <div style="font-family: 'Oswald'; font-weight: 500; font-size: 12px; color: #cbbf9e; text-align: center; line-height: 1.35;">
+            auto-drawn from everyone who won a team this break — {{ buyersCount }} buyers in the pool</div>
+        </sc-if>
+        <sc-if value="{{ isFollowersMode }}" hint-placeholder-val="{{ false }}">
+          <textarea value="{{ givvyNames }}" onChange="{{ setGivvy }}" placeholder="paste @followers to cross-reference — one per line"
+            style="resize: none; height: 56px; background: #0a150d; border: 1px solid rgba(242,232,207,.35); border-radius: 8px;
+            color: #f2e8cf; font-family: 'Oswald'; font-size: 13px; padding: 8px 10px; outline: none;"></textarea>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-family: 'Oswald';
+            font-weight: 500; font-size: 12px; color: #cbbf9e;">
+            <input type="checkbox" checked="{{ followerVerify }}" onChange="{{ toggleFollowerVerify }}"
+              style="width: 16px; height: 16px; accent-color: #b53329;" />
+            must follow on socials (cross-reference)</label>
+        </sc-if>
+
+        <button onClick="{{ spinGivvy }}" style="cursor: pointer; border: 2px solid #f2e8cf; border-radius: 8px; padding: 11px;
+          font-family: 'Graduate'; font-size: 13px; letter-spacing: 1px; color: #fffdf5;
+          background: #b53329; transition: filter .15s ease;"
+          style-hover="filter: brightness(1.12);">{{ spinLabel }}</button>
+      </div>
+
+      <!-- recent wins -->
+      <div style="flex: 1 1 auto; min-height: 0; background: rgba(13,32,20,.88);
+        border: 2px solid rgba(242,232,207,.3); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span style="font-family: 'Graduate'; font-size: 14px; letter-spacing: 1px; color: #d9a441;">🏆 RECENT WINS</span>
+          <span style="font-family: 'Graduate'; font-size: 12px; color: #cbbf9e;">{{ winCount }}</span>
+        </div>
+        <div style="flex: 1 1 auto; overflow-y: auto; display: flex; flex-direction: column; gap: 7px;">
+          <sc-if value="{{ noWins }}" hint-placeholder-val="{{ true }}">
+            <div style="color: #8a9a84; font-family: 'Oswald'; font-size: 13px; text-align: center; padding-top: 20px;">no winners yet — spin it up</div>
+          </sc-if>
+          <sc-for list="{{ wins }}" as="w" hint-placeholder-count="0">
+            <div style="display: flex; align-items: center; gap: 10px; background: rgba(10,21,13,.85); border: 1px solid rgba(242,232,207,.25);
+              border-radius: 8px; padding: 7px 10px; animation: rise .3s ease;">
+              <div style="width: 32px; height: 32px; border-radius: 6px; flex: 0 0 auto; display: flex;
+                align-items: center; justify-content: center; background: #fffdf5; padding: 3px;
+                border: 2px solid {{ w.color }};">
+                <img src="{{ w.logo }}" alt="{{ w.team }}" style="width: 100%; height: 100%; object-fit: contain;" /></div>
+              <div style="min-width: 0;">
+                <div style="font-family: 'Oswald'; font-weight: 700; font-size: 13px; color: #fffdf5; overflow: hidden;
+                  text-overflow: ellipsis; white-space: nowrap;">{{ w.winner }}</div>
+                <div style="font-family: 'Barlow Condensed'; font-weight: 600; font-size: 12px; color: #cbbf9e;
+                  text-transform: uppercase;">{{ w.team }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ACTION MODAL ===== -->
+  <sc-if value="{{ actionTeam }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeAction }}" style="position: fixed; inset: 0; z-index: 40; background: rgba(5,12,7,.78);
+      display: flex; align-items: center; justify-content: center;">
+      <div style="width: 340px; border-radius: 12px; overflow: hidden; border: 3px solid #f2e8cf;
+        background: #0d2014; box-shadow: 0 24px 60px rgba(0,0,0,.8);">
+        <div style="padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+          background: {{ actionTeam.color }};">
+          <div style="width: 64px; height: 64px; border-radius: 50%; background: #fffdf5; display: flex;
+            align-items: center; justify-content: center; padding: 8px; border: 2px solid rgba(0,0,0,.2);">
+            <img src="{{ actionTeam.logo }}" alt="{{ actionTeam.name }}" style="width: 100%; height: 100%; object-fit: contain;" /></div>
+          <div style="font-family: 'Graduate'; font-size: 20px; color: #fffdf5; text-shadow: 0 1px 6px rgba(0,0,0,.6);">{{ actionTeam.name }}</div>
+          <div style="font-family: 'Oswald'; font-weight: 500; font-size: 12px; letter-spacing: 3px; color: rgba(255,253,245,.85);">{{ actionTeam.city }}</div>
+        </div>
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+          <sc-if value="{{ actionIsWon }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ undoTeam }}" style="cursor: pointer; border: 2px solid #b53329; background: rgba(181,51,41,.15);
+              color: #e8a49e; font-family: 'Graduate'; font-size: 14px; padding: 14px; border-radius: 8px;">↩ PUT BACK ON BOARD</button>
+          </sc-if>
+          <sc-if value="{{ actionIsAvail }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ startWin }}" style="cursor: pointer; border: 2px solid #f2e8cf; color: #fffdf5; font-family: 'Graduate';
+              font-size: 16px; padding: 15px; border-radius: 8px; background: #b53329; transition: filter .15s ease;"
+              style-hover="filter: brightness(1.12);">🏆 MARK AS WON</button>
+            <button onClick="{{ toggleStash }}" style="cursor: pointer; border: 2px solid #d9a441; background: rgba(217,164,65,.12);
+              color: #d9a441; font-family: 'Graduate'; font-size: 13px; padding: 13px; border-radius: 8px;">{{ stashLabel }}</button>
+          </sc-if>
+          <button onClick="{{ closeAction }}" style="cursor: pointer; border: none; background: transparent; color: #8a9a84;
+            font-family: 'Oswald'; font-weight: 600; font-size: 13px; letter-spacing: 1px; padding: 6px;">CANCEL</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===== SEE 3 PICK 1 ===== -->
+  <sc-if value="{{ hasPicker }}" hint-placeholder-val="{{ false }}">
+    <div style="position: fixed; inset: 0; z-index: 45; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 28px; background: url('./photos/night.jpg') center / cover no-repeat;">
+      <div style="position: absolute; inset: 0; background: rgba(5,12,7,.82);"></div>
+      <div style="position: relative; font-family: 'Graduate'; font-size: 34px; letter-spacing: 3px; color: #f2e8cf;
+        text-shadow: 0 2px 12px rgba(0,0,0,.8);">SEE 3 · PICK 1</div>
+      <div style="position: relative; display: flex; gap: 24px;">
+        <sc-for list="{{ pickerTeams }}" as="p" hint-placeholder-count="3">
+          <div onClick="{{ p.pick }}" style="cursor: pointer; width: 210px; height: 260px; border-radius: 12px;
+            background: {{ p.color }}; border: 3px solid #f2e8cf; box-shadow: 0 20px 50px rgba(0,0,0,.7);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+            position: relative; overflow: hidden; animation: rise .4s ease backwards; transition: transform .15s ease;"
+            style-hover="transform: translateY(-8px);">
+            <div style="width: 110px; height: 110px; border-radius: 50%; background: #fffdf5; display: flex; align-items: center;
+              justify-content: center; padding: 14px; z-index: 1; border: 2px solid rgba(0,0,0,.2);">
+              <img src="{{ p.logo }}" alt="{{ p.name }}" style="width: 100%; height: 100%; object-fit: contain;" /></div>
+            <div style="font-family: 'Graduate'; font-size: 20px; color: #fffdf5; text-align: center; z-index: 1; text-shadow: 0 2px 8px rgba(0,0,0,.6);">{{ p.name }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <button onClick="{{ closePicker }}" style="position: relative; cursor: pointer; border: 1px solid rgba(242,232,207,.5); background: transparent;
+        color: #cbbf9e; font-family: 'Graduate'; font-size: 12px; letter-spacing: 2px; padding: 10px 24px; border-radius: 8px;">CLOSE</button>
+    </div>
+  </sc-if>
+
+  <!-- ===== DIAMOND SPIN ===== -->
+  <sc-if value="{{ hasSpin }}" hint-placeholder-val="{{ false }}">
+    <div style="position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 26px; background: url('./photos/night.jpg') center / cover no-repeat;">
+      <div style="position: absolute; inset: 0; background: rgba(5,12,7,.8);"></div>
+      <div style="position: relative; font-family: 'Graduate'; font-size: 32px; letter-spacing: 3px; color: #f2e8cf;
+        text-shadow: 0 2px 12px rgba(0,0,0,.8);">{{ spinTitle }}</div>
+      <div style="position: relative; width: 250px; height: 250px; display: flex; align-items: center; justify-content: center;">
+        <div style="width: 240px; height: 240px; border-radius: 50%; background: #fffdf5; display: flex; align-items: center;
+          justify-content: center; padding: 34px; box-shadow: 0 16px 50px rgba(0,0,0,.7);
+          border: 6px solid {{ spinColor }};">
+          <img src="{{ spinLogo }}" alt="{{ spinName }}" style="width: 100%; height: 100%; object-fit: contain;" /></div>
+      </div>
+      <div style="position: relative; font-family: 'Graduate'; font-size: 34px; color: #fffdf5; text-align: center;
+        text-shadow: 0 4px 20px rgba(0,0,0,.8); min-height: 44px; letter-spacing: 1px;">{{ spinName }}</div>
+    </div>
+  </sc-if>
+
+  <!-- ===== WIN TAKEOVER ===== -->
+  <sc-if value="{{ overlayTeam }}" hint-placeholder-val="{{ false }}">
+    <div style="position: fixed; inset: 0; z-index: 60; overflow: hidden;
+      background: url('./photos/aerial-bw.jpg') center 70% / cover no-repeat #0b1c11;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <div style="position: absolute; inset: 0; background: {{ overlayTeam.color }}; opacity: .58; mix-blend-mode: multiply;"></div>
+      <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.3), rgba(0,0,0,.6));"></div>
+
+      <!-- confetti -->
+      <sc-for list="{{ confetti }}" as="c" hint-placeholder-count="0">
+        <span style="position: absolute; top: 0; left: {{ c.left }}; width: 10px; height: 16px; background: {{ c.color }};
+          border-radius: 2px; z-index: 4; animation: confettiFall {{ c.dur }} linear {{ c.delay }} forwards;"></span>
+      </sc-for>
+
+      <!-- close -->
+      <button onClick="{{ closeOverlay }}" style="position: absolute; top: 16px; right: 20px; z-index: 6; cursor: pointer;
+        border: 1px solid rgba(255,253,245,.4); background: rgba(0,0,0,.4); color: #fffdf5; width: 44px; height: 44px; border-radius: 50%; font-size: 20px;">✕</button>
+
+      <!-- logo -->
+      <div style="position: relative; z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+        <div style="width: 190px; height: 190px; border-radius: 50%; background: #fffdf5; display: flex; align-items: center;
+          justify-content: center; padding: 26px; box-shadow: 0 20px 60px rgba(0,0,0,.6); border: 5px solid #f2e8cf;
+          animation: logoPop .6s cubic-bezier(.2,1.3,.4,1) both;">
+          <img src="{{ overlayTeam.logo }}" alt="{{ overlayTeam.name }}" style="width: 100%; height: 100%; object-fit: contain;" /></div>
+        <div style="font-family: 'Graduate'; font-size: 18px; letter-spacing: 6px; color: rgba(255,253,245,.9);
+          margin-top: 14px; animation: rise .5s ease both;">{{ overlayTeam.city }}</div>
+        <div style="font-family: 'Anton'; font-size: 72px; line-height: .95; color: #fffdf5; text-align: center;
+          text-shadow: 0 4px 30px rgba(0,0,0,.6); animation: rise .5s ease .08s both; letter-spacing: 2px;">{{ overlayTeamUpper }}</div>
+      </div>
+
+      <!-- winner entry / announce -->
+      <div style="position: relative; z-index: 5; margin-top: 30px; width: min(560px, 86vw);">
+        <sc-if value="{{ overlayAnnounced }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 20px; animation: rise .5s ease both;">
+            <div style="font-family: 'Graduate'; font-size: 26px; text-align: center; color: #fffdf5; background: rgba(0,0,0,.5);
+              padding: 14px 26px; border-radius: 10px; border: 3px double #f2e8cf;">
+              <span style="color: #d9a441;">{{ overlayWinner }}</span> JUST WON THE {{ overlayTeamUpper }}!
+            </div>
+            <button onClick="{{ confirmWin }}" style="cursor: pointer; border: 3px solid #fffdf5; font-family: 'Graduate'; font-size: 18px;
+              letter-spacing: 1px; color: #fffdf5; background: #b53329; padding: 15px 40px; border-radius: 10px;
+              box-shadow: 0 10px 30px rgba(0,0,0,.5); transition: filter .15s ease;" style-hover="filter: brightness(1.12);">STAMP IT — SOLD ✓</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ overlayEntering }}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
+            <div style="font-family: 'Graduate'; font-size: 14px; letter-spacing: 4px; color: rgba(255,253,245,.9);">WHO WON IT?</div>
+            <div style="display: flex; gap: 10px; width: 100%;">
+              <input value="{{ overlayWinner }}" onChange="{{ setWinnerName }}" onKeyDown="{{ winnerKey }}"
+                placeholder="enter winner username" autofocus
+                style="flex: 1; background: rgba(0,0,0,.5); border: 2px solid rgba(255,253,245,.6); border-radius: 8px;
+                color: #fffdf5; font-family: 'Graduate'; font-size: 18px; padding: 13px 18px; outline: none; text-align: center;" />
+              <button onClick="{{ crownWinner }}" style="cursor: pointer; border: 2px solid #fffdf5; font-family: 'Graduate'; font-size: 16px;
+                color: #fffdf5; background: #b53329; padding: 0 26px; border-radius: 8px; transition: filter .15s ease;"
+                style-hover="filter: brightness(1.12);">CROWN 🏆</button>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: &quot;100%&quot;, &quot;height&quot;: &quot;100%&quot;}}">
+class Component extends DCLogic {
+  state = {
+    teams: (function(){
+      const raw = [
+        ['BAL','Orioles','Baltimore','#DF4601','AL EAST'],
+        ['BOS','Red Sox','Boston','#BD3039','AL EAST'],
+        ['NYY','Yankees','New York','#0C2340','AL EAST'],
+        ['TB','Rays','Tampa Bay','#092C5C','AL EAST'],
+        ['TOR','Blue Jays','Toronto','#134A8E','AL EAST'],
+        ['CWS','White Sox','Chicago','#232323','AL CENTRAL'],
+        ['CLE','Guardians','Cleveland','#00385D','AL CENTRAL'],
+        ['DET','Tigers','Detroit','#0C2340','AL CENTRAL'],
+        ['KC','Royals','Kansas City','#004687','AL CENTRAL'],
+        ['MIN','Twins','Minnesota','#002B5C','AL CENTRAL'],
+        ['HOU','Astros','Houston','#002D62','AL WEST'],
+        ['LAA','Angels','Los Angeles','#BA0021','AL WEST'],
+        ['ATH','Athletics','West Sacramento','#0B3D2E','AL WEST'],
+        ['SEA','Mariners','Seattle','#0C2C56','AL WEST'],
+        ['TEX','Rangers','Texas','#003278','AL WEST'],
+        ['ATL','Braves','Atlanta','#CE1141','NL EAST'],
+        ['MIA','Marlins','Miami','#00A3E0','NL EAST'],
+        ['NYM','Mets','New York','#002D72','NL EAST'],
+        ['PHI','Phillies','Philadelphia','#E81828','NL EAST'],
+        ['WSH','Nationals','Washington','#AB0003','NL EAST'],
+        ['CHC','Cubs','Chicago','#0E3386','NL CENTRAL'],
+        ['CIN','Reds','Cincinnati','#C6011F','NL CENTRAL'],
+        ['MIL','Brewers','Milwaukee','#12284B','NL CENTRAL'],
+        ['PIT','Pirates','Pittsburgh','#27251F','NL CENTRAL'],
+        ['STL','Cardinals','St. Louis','#C41E3A','NL CENTRAL'],
+        ['ARI','D-backs','Arizona','#A71930','NL WEST'],
+        ['COL','Rockies','Colorado','#33006F','NL WEST'],
+        ['LAD','Dodgers','Los Angeles','#005A9C','NL WEST'],
+        ['SD','Padres','San Diego','#2F241D','NL WEST'],
+        ['SF','Giants','San Francisco','#FD5A1E','NL WEST'],
+      ];
+      return raw.map(r => ({ id: r[0], abbr: r[0], name: r[1], city: r[2], color: r[3], div: r[4], status: 'available', winner: null }));
+    })(),
+    wins: [],
+    promos: [
+      '⚾ 30 TEAMS · ONE SPIN · WHO YA GOT?',
+      'SMASH FOLLOW — GIVVYS ALL NIGHT',
+      'NEXT BREAK · FRIDAY 8PM ET',
+      'NEED IT SERVICES? LINK IN BIO',
+      'STASH · PASS · SEE 3 PICK 1 IN PLAY',
+    ],
+    soundOn: true,
+    action: null,
+    overlay: null,
+    picker: null,
+    spin: null,
+    givvyNames: '',
+    givvyDisplay: null,
+    givvySpinning: false,
+    givvyMode: 'buyers',
+    followerVerify: true,
+  };
+
+  logoUrl(abbr) { return './logos/' + abbr + '.svg'; }
+
+  // ---------- persistence (survive a mid-break refresh) ----------
+  persist() {
+    try {
+      const s = this.state;
+      localStorage.setItem('diamondSpinnerBoard', JSON.stringify({
+        teams: s.teams.map(t => ({ id: t.id, status: t.status, winner: t.winner })),
+        wins: s.wins.map(w => ({ id: w.id, abbr: w.abbr, color: w.color, team: w.team, winner: w.winner })),
+      }));
+    } catch (e) {}
+  }
+  clearPersist() { try { localStorage.removeItem('diamondSpinnerBoard'); } catch (e) {} }
+  componentDidMount() {
+    try {
+      const raw = localStorage.getItem('diamondSpinnerBoard');
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      this.setState(s => ({
+        teams: s.teams.map(t => {
+          const m = (d.teams || []).find(x => x.id === t.id);
+          return m ? { ...t, status: m.status, winner: m.winner } : t;
+        }),
+        wins: d.wins || [],
+      }));
+    } catch (e) {}
+  }
+
+  // ---------- audio ----------
+  ensureAudio() {
+    if (!this.actx) { try { this.actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (this.actx && this.actx.state === 'suspended') this.actx.resume();
+  }
+  tone(freq, start, dur, type, gain) {
+    if (!this.actx) return;
+    const c = this.actx, o = c.createOscillator(), g = c.createGain();
+    o.type = type || 'triangle'; o.frequency.value = freq;
+    o.connect(g); g.connect(c.destination);
+    const t = c.currentTime + start;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(gain || 0.2, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.start(t); o.stop(t + dur + 0.03);
+  }
+  sfx(kind) {
+    if (!this.state.soundOn) return;
+    this.ensureAudio(); if (!this.actx) return;
+    if (kind === 'click') this.tone(620, 0, 0.07, 'square', 0.12);
+    else if (kind === 'tick') this.tone(980, 0, 0.04, 'square', 0.07);
+    else if (kind === 'coin') { [880, 1174, 1568].forEach((f, i) => this.tone(f, i * 0.07, 0.12, 'square', 0.13)); }
+    else if (kind === 'stamp') { this.tone(150, 0, 0.18, 'sine', 0.4); this.tone(90, 0.02, 0.22, 'sine', 0.3); }
+    else if (kind === 'win') {
+      const seq = [523, 659, 784, 1047, 1319];
+      seq.forEach((f, i) => this.tone(f, i * 0.09, 0.28, 'triangle', 0.18));
+      this.tone(784, 0.5, 0.5, 'sawtooth', 0.12); this.tone(1047, 0.5, 0.5, 'triangle', 0.14);
+    }
+  }
+
+  // ---------- actions ----------
+  selectTeam(id) { this.sfx('click'); this.setState({ action: id }); }
+  closeAction() { this.setState({ action: null }); }
+  toggleStash() {
+    const id = this.state.action; this.sfx('coin');
+    this.setState(s => ({ action: null, teams: s.teams.map(t => t.id === id ? { ...t, status: t.status === 'stashed' ? 'available' : 'stashed' } : t) }));
+    setTimeout(() => this.persist(), 0);
+  }
+  undoTeam() {
+    const id = this.state.action; this.sfx('click');
+    this.setState(s => ({ action: null, teams: s.teams.map(t => t.id === id ? { ...t, status: 'available', winner: null } : t),
+      wins: s.wins.filter(w => w.id !== id) }));
+    setTimeout(() => this.persist(), 0);
+  }
+  startWin() {
+    const id = this.state.action; this.sfx('coin');
+    this.setState({ action: null, picker: null, overlay: { teamId: id, winner: '', announced: false } });
+  }
+  setWinnerName(e) { const v = e.target.value; this.setState(s => ({ overlay: { ...s.overlay, winner: v } })); }
+  winnerKey(e) { if (e.key === 'Enter') this.crownWinner(); }
+  crownWinner() {
+    if (!this.state.overlay || !this.state.overlay.winner.trim()) return;
+    this.sfx('win');
+    this.setState(s => ({ overlay: { ...s.overlay, announced: true } }));
+  }
+  confirmWin() {
+    const o = this.state.overlay; if (!o) return;
+    this.sfx('stamp');
+    this.setState(s => {
+      const t = s.teams.find(x => x.id === o.teamId);
+      const name = o.winner.trim();
+      return {
+        overlay: null,
+        teams: s.teams.map(x => x.id === o.teamId ? { ...x, status: 'won', winner: name } : x),
+        wins: [{ id: t.id, abbr: t.abbr, color: t.color, team: t.name, winner: name }, ...s.wins],
+      };
+    });
+    setTimeout(() => this.persist(), 0);
+  }
+  closeOverlay() { this.setState({ overlay: null }); }
+
+  pick3() {
+    const avail = this.state.teams.filter(t => t.status === 'available');
+    if (!avail.length) return;
+    this.sfx('coin');
+    const pool = [...avail];
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    this.setState({ picker: pool.slice(0, Math.min(3, pool.length)).map(t => t.id) });
+  }
+  closePicker() { this.setState({ picker: null }); }
+  pickFromPicker(id) { this.sfx('coin'); this.setState({ picker: null, overlay: { teamId: id, winner: '', announced: false } }); }
+
+  // ---------- diamond spin: slot-machine cycle, lands on a random team ----------
+  spinWheel() {
+    if (this.spinTimer) return;
+    const avail = this.state.teams.filter(t => t.status === 'available');
+    if (!avail.length) return;
+    this.sfx('coin');
+    const target = avail[Math.floor(Math.random() * avail.length)];
+    let ticks = 0; const total = 24;
+    this.setState({ spin: { teamId: avail[Math.floor(Math.random() * avail.length)].id, done: false }, action: null, picker: null });
+    const step = () => {
+      ticks++;
+      if (ticks >= total) {
+        this.sfx('win');
+        this.setState({ spin: { teamId: target.id, done: true } });
+        this.spinTimer = setTimeout(() => {
+          this.spinTimer = null;
+          this.setState({ spin: null, overlay: { teamId: target.id, winner: '', announced: false } });
+        }, 1400);
+        return;
+      }
+      this.sfx('tick');
+      let next = avail[Math.floor(Math.random() * avail.length)];
+      if (avail.length > 1 && next.id === this.state.spin.teamId) next = avail[(avail.indexOf(next) + 1) % avail.length];
+      this.setState({ spin: { teamId: next.id, done: false } });
+      this.spinTimer = setTimeout(step, 55 + Math.pow(ticks / total, 2.4) * 420);
+    };
+    this.spinTimer = setTimeout(step, 55);
+  }
+
+  setGivvy(e) { const v = e.target.value; this.setState({ givvyNames: v }); }
+  setBuyersMode() { this.sfx('click'); this.setState({ givvyMode: 'buyers', givvyDisplay: null }); }
+  setFollowersMode() { this.sfx('click'); this.setState({ givvyMode: 'followers', givvyDisplay: null }); }
+  toggleFollowerVerify() { this.setState(s => ({ followerVerify: !s.followerVerify })); }
+  buyersPool() {
+    // unique winners drawn straight from who bought/won teams this break
+    const seen = new Set(); const pool = [];
+    this.state.wins.forEach(w => { const n = (w.winner || '').trim(); if (n && !seen.has(n.toLowerCase())) { seen.add(n.toLowerCase()); pool.push(n); } });
+    return pool;
+  }
+  spinGivvy() {
+    const mode = this.state.givvyMode;
+    let names, tag, empty;
+    if (mode === 'buyers') {
+      names = this.buyersPool();
+      tag = '🧢 BUYERS GIVVY: ';
+      empty = '⬆ no buyers yet';
+    } else {
+      names = this.state.givvyNames.split(/[\n,]+/).map(s => s.trim().replace(/^@/, '')).filter(Boolean);
+      tag = this.state.followerVerify ? 'FOLLOWER GIVVY: ' : 'GIVVY WINNER: ';
+      empty = '⬆ paste followers';
+    }
+    if (!names.length) { this.setState({ givvyDisplay: empty }); return; }
+    if (this.givvyTimer) clearInterval(this.givvyTimer);
+    this.sfx('coin');
+    this.setState({ givvySpinning: true });
+    const verifying = mode === 'followers' && this.state.followerVerify;
+    let ticks = 0; const total = 18;
+    this.givvyTimer = setInterval(() => {
+      ticks++;
+      const raw = names[Math.floor(Math.random() * names.length)];
+      const pick = mode === 'followers' ? '@' + raw : raw;
+      if (ticks >= total) {
+        clearInterval(this.givvyTimer);
+        this.sfx('win');
+        this.setState(s => ({ givvySpinning: false, givvyDisplay: '🎉 ' + pick,
+          promos: [tag + pick + ' 🎉', ...s.promos] }));
+      } else {
+        this.setState({ givvyDisplay: (verifying && ticks > 10 ? '🔎 ' : '') + pick });
+      }
+    }, ticks < 10 ? 60 : 130);
+  }
+
+  toggleSound() { this.setState(s => ({ soundOn: !s.soundOn })); }
+  resetBoard() {
+    if (this.givvyTimer) clearInterval(this.givvyTimer);
+    if (this.spinTimer) { clearTimeout(this.spinTimer); this.spinTimer = null; }
+    this.clearPersist();
+    this.setState(s => ({ teams: s.teams.map(t => ({ ...t, status: 'available', winner: null })), wins: [], overlay: null, action: null, picker: null, spin: null }));
+  }
+  componentWillUnmount() {
+    if (this.givvyTimer) clearInterval(this.givvyTimer);
+    if (this.spinTimer) clearTimeout(this.spinTimer);
+  }
+
+  // ---------- render ----------
+  renderVals() {
+    const s = this.state;
+    const withLogo = (t) => t ? { ...t, logo: this.logoUrl(t.abbr) } : t;
+    const mapT = (t) => ({ ...withLogo(t), isWon: t.status === 'won', isStash: t.status === 'stashed', select: () => this.selectTeam(t.id) });
+    const byDiv = {};
+    s.teams.forEach(t => { (byDiv[t.div] = byDiv[t.div] || []).push(t); });
+    const mkLeague = (name, color, divs) => ({ name, color,
+      divisions: divs.map(d => ({ name: d, label: d.replace(/^AL |^NL /, ''), teams: (byDiv[d] || []).map(mapT) })) });
+    const leagues = [
+      mkLeague('AMERICAN LEAGUE', '#e8a49e', ['AL EAST', 'AL CENTRAL', 'AL WEST']),
+      mkLeague('NATIONAL LEAGUE', '#9db8d9', ['NL EAST', 'NL CENTRAL', 'NL WEST']),
+    ];
+
+    const remaining = s.teams.filter(t => t.status !== 'won').length;
+    const wonCount = 30 - remaining;
+    const pct = Math.round((wonCount / 30) * 100);
+
+    // ticker: recent wins + live count + promos
+    const items = [];
+    s.wins.slice(0, 6).forEach(w => items.push({ text: (w.winner + ' WON THE ' + w.team.toUpperCase() + '!'), color: '#d9a441' }));
+    items.push({ text: remaining + ' TEAMS STILL ON THE BOARD', color: '#e8a49e' });
+    s.promos.forEach(p => items.push({ text: p, color: '#f2e8cf' }));
+    const tickerLoop = items.concat(items);
+
+    const actionT = s.action ? withLogo(s.teams.find(t => t.id === s.action)) : null;
+    const overlayT = s.overlay ? withLogo(s.teams.find(t => t.id === s.overlay.teamId)) : null;
+
+    const pickerTeams = (s.picker || []).map(id => {
+      const t = withLogo(s.teams.find(x => x.id === id));
+      return { ...t, pick: () => this.pickFromPicker(id) };
+    });
+
+    const spinT = s.spin ? withLogo(s.teams.find(t => t.id === s.spin.teamId)) : null;
+    const spinDone = !!(s.spin && s.spin.done);
+
+    let confetti = [];
+    if (s.overlay && s.overlay.announced) {
+      const cols = ['#f2e8cf', '#b53329', '#ffffff', '#d9a441', overlayT ? overlayT.color : '#f2e8cf'];
+      confetti = Array.from({ length: 70 }, () => ({
+        left: Math.floor(Math.random() * 100) + '%',
+        color: cols[Math.floor(Math.random() * cols.length)],
+        dur: (1.8 + Math.random() * 1.6).toFixed(2) + 's',
+        delay: (Math.random() * 0.5).toFixed(2) + 's',
+      }));
+    }
+
+    const givvyDisplayText = s.givvyDisplay || 'ready to draw';
+
+    return {
+      leagues, remaining, pct,
+      tickerLoop,
+      soundIcon: s.soundOn ? '🔊' : '🔇',
+      toggleSound: () => this.toggleSound(),
+      resetBoard: () => this.resetBoard(),
+      pick3: () => this.pick3(),
+      spinWheel: () => this.spinWheel(),
+
+      wins: s.wins.map(w => ({ ...w, logo: this.logoUrl(w.abbr) })), winCount: s.wins.length, noWins: s.wins.length === 0,
+
+      actionTeam: actionT, actionIsWon: !!(actionT && actionT.status === 'won'),
+      actionIsAvail: !!(actionT && actionT.status !== 'won'),
+      stashLabel: actionT && actionT.status === 'stashed' ? '↩ UNSTASH' : '🧢 STASH FOR LATER',
+      startWin: () => this.startWin(), toggleStash: () => this.toggleStash(),
+      undoTeam: () => this.undoTeam(), closeAction: () => this.closeAction(),
+
+      hasPicker: !!(s.picker && s.picker.length), pickerTeams, closePicker: () => this.closePicker(),
+
+      hasSpin: !!spinT,
+      spinLogo: spinT ? spinT.logo : '',
+      spinName: spinT ? (spinDone ? spinT.city + ' ' + spinT.name : '· · ·') : '',
+      spinColor: spinT ? spinT.color : '#f2e8cf',
+      spinTitle: spinDone ? '⚾ GOING… GONE!' : 'NOW SPINNING',
+
+      overlayTeam: overlayT,
+      overlayTeamUpper: overlayT ? overlayT.name.toUpperCase() : '',
+      overlayWinner: s.overlay ? s.overlay.winner : '',
+      overlayAnnounced: !!(s.overlay && s.overlay.announced),
+      overlayEntering: !!(s.overlay && !s.overlay.announced),
+      setWinnerName: (e) => this.setWinnerName(e), winnerKey: (e) => this.winnerKey(e),
+      crownWinner: () => this.crownWinner(), confirmWin: () => this.confirmWin(), closeOverlay: () => this.closeOverlay(),
+      confetti,
+
+      givvyNames: s.givvyNames, setGivvy: (e) => this.setGivvy(e), spinGivvy: () => this.spinGivvy(),
+      givvyDisplayText, givvyColor: s.givvyDisplay && s.givvyDisplay.indexOf('🎉') === 0 ? '#d9a441' : '#f2e8cf',
+      isBuyersMode: s.givvyMode === 'buyers', isFollowersMode: s.givvyMode === 'followers',
+      setBuyersMode: () => this.setBuyersMode(), setFollowersMode: () => this.setFollowersMode(),
+      buyersCount: this.buyersPool().length,
+      buyersTabBg: s.givvyMode === 'buyers' ? '#b53329' : 'transparent',
+      buyersTabColor: s.givvyMode === 'buyers' ? '#fffdf5' : '#cbbf9e',
+      followersTabBg: s.givvyMode === 'followers' ? '#b53329' : 'transparent',
+      followersTabColor: s.givvyMode === 'followers' ? '#fffdf5' : '#cbbf9e',
+      followerVerify: s.followerVerify, toggleFollowerVerify: () => this.toggleFollowerVerify(),
+      spinLabel: s.givvyMode === 'buyers' ? 'SPIN BUYERS GIVVY' : (s.followerVerify ? 'SPIN FOLLOWER GIVVY' : 'SPIN THE GIVVY'),
+    };
+  }
+}
+</script>
+</body>
+</html>
