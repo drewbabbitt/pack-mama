@@ -186,8 +186,8 @@
 
   <!-- ===== GIVVY POPOVER ===== -->
   <sc-if value="{{ hasGivvyOpen }}" hint-placeholder-val="{{ false }}">
-    <div onClick="{{ closeGivvy }}" style="position: fixed; inset: 0; z-index: 44; background: rgba(8,4,16,.8);
-      display: flex; align-items: center; justify-content: center; padding: 20px;">
+    <div onClick="{{ closeGivvy }}" style="position: fixed; left: 0; right: 0; bottom: 0; top: calc(100vw / 3.365 + 3px);
+      z-index: 44; background: rgba(8,4,16,.8); display: flex; align-items: center; justify-content: center; padding: 16px;">
       <div onClick="{{ eatClick }}" style="width: min(440px, 92vw); border-radius: 16px; border: 3px solid #f5b40a;
         background: #170d29; box-shadow: 0 24px 70px rgba(0,0,0,.8); padding: 16px 18px;
         display: flex; flex-direction: column; gap: 10px; animation: rise .3s ease;">
@@ -222,8 +222,8 @@
 
   <!-- ===== RECENT RIPS POPOVER ===== -->
   <sc-if value="{{ hasRipsOpen }}" hint-placeholder-val="{{ false }}">
-    <div onClick="{{ closeRips }}" style="position: fixed; inset: 0; z-index: 44; background: rgba(8,4,16,.8);
-      display: flex; align-items: center; justify-content: center; padding: 20px;">
+    <div onClick="{{ closeRips }}" style="position: fixed; left: 0; right: 0; bottom: 0; top: calc(100vw / 3.365 + 3px);
+      z-index: 44; background: rgba(8,4,16,.8); display: flex; align-items: center; justify-content: center; padding: 16px;">
       <div onClick="{{ eatClick }}" style="width: min(440px, 92vw); max-height: 70vh; border-radius: 16px; border: 3px solid #9e5eff;
         background: #170d29; box-shadow: 0 24px 70px rgba(0,0,0,.8); padding: 16px 18px;
         display: flex; flex-direction: column; gap: 10px; animation: rise .3s ease;">
@@ -260,27 +260,28 @@
     </div>
   </sc-if>
 
-  <!-- ===== TEAM POPUP (big logo + top 3 chases, all flows) ===== -->
+  <!-- ===== TEAM POPUP (big logo + top 3 chases, all flows — sits below the banner) ===== -->
   <sc-if value="{{ detailTeam }}" hint-placeholder-val="{{ false }}">
-    <div style="position: fixed; inset: 0; z-index: 45; background: rgba(8,4,16,.85);
-      display: flex; align-items: center; justify-content: center; padding: 20px;">
-      <div style="width: min(560px, 94vw); border-radius: 18px; overflow: hidden; border: 3px solid #f5b40a;
+    <div style="position: fixed; left: 0; right: 0; bottom: 0; top: calc(100vw / 3.365 + 3px); z-index: 45;
+      background: rgba(8,4,16,.85); display: flex; align-items: center; justify-content: center; padding: 12px;">
+      <div style="width: min(560px, 94vw); max-height: 100%; overflow-y: auto; border-radius: 18px; border: 3px solid #f5b40a;
         background: #170d29; box-shadow: 0 24px 70px rgba(0,0,0,.8), 0 0 40px rgba(122,47,224,.4); animation: rise .3s ease;">
-        <div style="padding: 22px 18px 18px; display: flex; flex-direction: column; align-items: center; gap: 10px; background: {{ detailTeam.color }};">
-          <div style="width: 150px; height: 150px; border-radius: 50%; background: #fff; display: flex;
-            align-items: center; justify-content: center; padding: 18px; border: 3px solid rgba(0,0,0,.2);
+        <div style="padding: 16px 18px 14px; display: flex; flex-direction: column; align-items: center; gap: 8px;
+          background: {{ detailTeam.color }}; border-radius: 15px 15px 0 0;">
+          <div style="width: 180px; height: 180px; border-radius: 50%; background: #fff; display: flex;
+            align-items: center; justify-content: center; padding: 20px; border: 3px solid rgba(0,0,0,.2);
             box-shadow: 0 10px 30px rgba(0,0,0,.45);">
             <img src="{{ detailTeam.logo }}" alt="{{ detailTeam.name }}" style="width: 100%; height: 100%; object-fit: contain;" /></div>
-          <div style="font-family: 'Anton'; font-size: 30px; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.6);
+          <div style="font-family: 'Anton'; font-size: 28px; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.6);
             letter-spacing: 1px; text-align: center; line-height: 1;">{{ detailTeam.city }} {{ detailTeam.name }}</div>
-          <div style="font-family: 'Pacifico'; font-size: 15px; color: rgba(255,255,255,.92);">{{ detailKicker }}</div>
+          <div style="font-family: 'Pacifico'; font-size: 14px; color: rgba(255,255,255,.92);">{{ detailKicker }}</div>
         </div>
-        <div style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px;">
-          <div style="font-family: 'Anton'; font-size: 12px; letter-spacing: 3px; color: #f5b40a; text-align: center;">TOP CHASES THIS YEAR</div>
-          <div style="display: flex; flex-direction: column; gap: 7px;">
+        <div style="padding: 12px 16px 14px; display: flex; flex-direction: column; gap: 9px;">
+          <div style="font-family: 'Anton'; font-size: 11px; letter-spacing: 3px; color: #f5b40a; text-align: center;">TOP CHASES THIS YEAR</div>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
             <sc-for list="{{ detailPlayers }}" as="pl" hint-placeholder-count="3">
-              <div style="background: #120a20; border: 1px solid rgba(158,94,255,.45); border-radius: 9px; padding: 11px 14px;
-                font-family: 'Oswald'; font-weight: 600; font-size: 17px; color: #f3edff; text-align: center;">{{ pl }}</div>
+              <div style="background: #120a20; border: 1px solid rgba(158,94,255,.45); border-radius: 9px; padding: 9px 12px;
+                font-family: 'Oswald'; font-weight: 600; font-size: 16px; color: #f3edff; text-align: center;">{{ pl }}</div>
             </sc-for>
           </div>
           <sc-if value="{{ detailIsPlain }}" hint-placeholder-val="{{ false }}">
@@ -346,7 +347,8 @@
 
   <!-- ===== SEE 2/3 CHOOSER ===== -->
   <sc-if value="{{ hasChooser }}" hint-placeholder-val="{{ false }}">
-    <div style="position: fixed; inset: 0; z-index: 46; display: flex; flex-direction: column; align-items: center;
+    <div style="position: fixed; left: 0; right: 0; bottom: 0; top: calc(100vw / 3.365 + 3px); z-index: 46;
+      display: flex; flex-direction: column; align-items: center;
       justify-content: center; gap: 20px; background: url('./photos/night.jpg') center / cover no-repeat; padding: 16px;">
       <div style="position: absolute; inset: 0; background: rgba(10,5,20,.88);"></div>
       <div style="position: relative; font-family: 'Anton'; font-size: 30px; letter-spacing: 2px; color: #f5b40a;
@@ -374,9 +376,9 @@
 
   <!-- ===== WIN TAKEOVER ===== -->
   <sc-if value="{{ overlayTeam }}" hint-placeholder-val="{{ false }}">
-    <div style="position: fixed; inset: 0; z-index: 60; overflow: hidden;
+    <div style="position: fixed; left: 0; right: 0; bottom: 0; top: calc(100vw / 3.365 + 3px); z-index: 60; overflow: hidden;
       background: url('./photos/aerial-bw.jpg') center 70% / cover no-repeat #0c0913;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+      display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px;">
       <div style="position: absolute; inset: 0; background: {{ overlayTeam.color }}; opacity: .55; mix-blend-mode: multiply;"></div>
       <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12,6,24,.4), rgba(12,6,24,.7));"></div>
 
@@ -393,7 +395,7 @@
           animation: fwShoot {{ f.dur }} ease-out {{ f.delay }} infinite;"></span>
       </sc-for>
 
-      <button onClick="{{ closeOverlay }}" style="position: absolute; top: calc(100vw / 3.365 + 12px); right: 20px; z-index: 6; cursor: pointer;
+      <button onClick="{{ closeOverlay }}" style="position: absolute; top: 12px; right: 16px; z-index: 6; cursor: pointer;
         border: 1px solid rgba(255,255,255,.4); background: rgba(0,0,0,.45); color: #fff; width: 44px; height: 44px; border-radius: 50%; font-size: 20px;">✕</button>
 
       <div style="position: relative; z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 6px;">
