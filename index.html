@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <title>Pack Mama — Live Break Board</title>
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -18,7 +18,9 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: #0c0913; overflow: hidden;
     -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none;
-    touch-action: manipulation; }
+    touch-action: manipulation; overscroll-behavior: none; position: fixed; inset: 0; width: 100%; }
+  /* Safari iPad: 100vh includes the URL-bar zone and clips the bottom — dvh tracks the real visible area */
+  .pm-app { height: 100vh; height: 100dvh; }
   a { color: #f5b40a; text-decoration: none; }
   input { font-family: inherit; }
   img { -webkit-user-drag: none; }
@@ -32,7 +34,7 @@
 </style>
 </helmet>
 
-<div style="height: 100vh; display: flex; flex-direction: column; color: #f3edff;
+<div class="pm-app" style="display: flex; flex-direction: column; color: #f3edff;
   font-family: 'Oswald', sans-serif; overflow: hidden; position: relative;
   background: url('./photos/stands.jpg') center 30% / cover no-repeat #0c0913;">
 
@@ -45,58 +47,62 @@
     background: url('./photos/packmama-banner.jpg') center / 100% 100% no-repeat #0c0913;
     border-bottom: 3px solid #f5b40a; box-shadow: 0 10px 32px rgba(0,0,0,.85);"></div>
 
-  <!-- ===== UNIFIED TASKBAR ===== -->
-  <div style="flex: 0 0 auto; display: flex; align-items: center; gap: 7px; padding: 6px 12px;
+  <!-- ===== UNIFIED TASKBAR (no-wrap, self-compressing) ===== -->
+  <div style="flex: 0 0 auto; display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; padding: 6px 10px;
     position: relative; z-index: 5; border-bottom: 1px solid rgba(158,94,255,.35);">
-    <button onClick="{{ armSP }}" style="cursor: pointer; flex: 1 1 auto; border: 2px solid {{ spBorder }}; color: {{ spColor }};
-      font-family: 'Anton'; font-size: 14px; letter-spacing: .5px; padding: 10px 4px; border-radius: 10px;
+    <button onClick="{{ armSP }}" style="cursor: pointer; flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden;
+      border: 2px solid {{ spBorder }}; color: {{ spColor }};
+      font-family: 'Anton'; font-size: 12px; padding: 11px 2px; border-radius: 9px;
       background: {{ spBg }}; transition: filter .15s ease;" style-hover="filter: brightness(1.12);">
-      STASH · PASS
+      STASH·PASS
     </button>
-    <button onClick="{{ armSee2 }}" style="cursor: pointer; flex: 1 1 auto; border: 2px solid {{ see2Border }}; color: {{ see2Color }};
-      font-family: 'Anton'; font-size: 14px; letter-spacing: .5px; padding: 10px 4px; border-radius: 10px;
+    <button onClick="{{ armSee2 }}" style="cursor: pointer; flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden;
+      border: 2px solid {{ see2Border }}; color: {{ see2Color }};
+      font-family: 'Anton'; font-size: 12px; padding: 11px 2px; border-radius: 9px;
       background: {{ see2Bg }}; transition: filter .15s ease;" style-hover="filter: brightness(1.12);">
-      SEE 2 · PICK 1
+      SEE 2·PICK 1
     </button>
-    <button onClick="{{ armSee3 }}" style="cursor: pointer; flex: 1 1 auto; border: 2px solid {{ see3Border }}; color: {{ see3Color }};
-      font-family: 'Anton'; font-size: 14px; letter-spacing: .5px; padding: 10px 4px; border-radius: 10px;
+    <button onClick="{{ armSee3 }}" style="cursor: pointer; flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden;
+      border: 2px solid {{ see3Border }}; color: {{ see3Color }};
+      font-family: 'Anton'; font-size: 12px; padding: 11px 2px; border-radius: 9px;
       background: {{ see3Bg }}; transition: filter .15s ease;" style-hover="filter: brightness(1.12);">
-      SEE 3 · PICK 1
+      SEE 3·PICK 1
     </button>
-    <button onClick="{{ armHB }}" style="cursor: pointer; flex: 1 1 auto; border: 2px solid {{ hbBorder }}; color: {{ hbColor }};
-      font-family: 'Anton'; font-size: 14px; letter-spacing: .5px; padding: 10px 4px; border-radius: 10px;
+    <button onClick="{{ armHB }}" style="cursor: pointer; flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden;
+      border: 2px solid {{ hbBorder }}; color: {{ hbColor }};
+      font-family: 'Anton'; font-size: 12px; padding: 11px 2px; border-radius: 9px;
       background: {{ hbBg }}; transition: filter .15s ease;" style-hover="filter: brightness(1.12);">
       HIGH BID
     </button>
 
     <!-- board count -->
-    <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 3px;">
-      <span style="font-family: 'Anton'; font-size: 17px; line-height: 1; color: #fff; background: #120a20;
-        padding: 5px 10px; border-radius: 8px; border: 2px solid #f5b40a; letter-spacing: 1px;">{{ remaining }} / 30</span>
-      <div style="height: 5px; width: 76px; border-radius: 3px; background: #120a20; overflow: hidden; border: 1px solid rgba(158,94,255,.4);">
+    <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px;">
+      <span style="font-family: 'Anton'; font-size: 14px; line-height: 1; color: #fff; background: #120a20;
+        padding: 5px 7px; border-radius: 7px; border: 2px solid #f5b40a; white-space: nowrap;">{{ remaining }}/30</span>
+      <div style="height: 4px; width: 52px; border-radius: 3px; background: #120a20; overflow: hidden; border: 1px solid rgba(158,94,255,.4);">
         <div style="height: 100%; width: {{ pct }}%; background: linear-gradient(90deg,#7a2fe0,#f5b40a); transition: width .5s ease;"></div>
       </div>
     </div>
 
     <!-- running total -->
-    <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 3px;">
-      <span style="font-family: 'Anton'; font-size: 17px; line-height: 1; color: #f5b40a; background: #120a20;
-        padding: 5px 10px; border-radius: 8px; border: 2px solid #f5b40a; letter-spacing: 1px;">{{ totalText }}</span>
-      <span style="font-family: 'Anton'; font-size: 8px; letter-spacing: 2px; color: #cbb8ef;">TOTAL</span>
+    <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px;">
+      <span style="font-family: 'Anton'; font-size: 14px; line-height: 1; color: #f5b40a; background: #120a20;
+        padding: 5px 7px; border-radius: 7px; border: 2px solid #f5b40a; white-space: nowrap;">{{ totalText }}</span>
+      <span style="font-family: 'Anton'; font-size: 7px; letter-spacing: 2px; color: #cbb8ef;">TOTAL</span>
     </div>
 
     <button onClick="{{ openGivvy }}" style="cursor: pointer; border: 2px solid #f5b40a; background: rgba(245,180,10,.12);
-      color: #f5b40a; font-family: 'Anton'; font-size: 13px; letter-spacing: .5px; padding: 0 12px; height: 44px;
-      border-radius: 10px; flex: 0 0 auto;" style-hover="background: rgba(245,180,10,.25);">GIVVY</button>
+      color: #f5b40a; font-family: 'Anton'; font-size: 11px; padding: 0 8px; height: 42px; white-space: nowrap;
+      border-radius: 9px; flex: 0 0 auto;" style-hover="background: rgba(245,180,10,.25);">GIVVY</button>
     <button onClick="{{ openRips }}" style="cursor: pointer; border: 1px solid rgba(158,94,255,.5); background: rgba(30,18,52,.85);
-      color: #f3edff; font-family: 'Anton'; font-size: 13px; letter-spacing: .5px; padding: 0 12px; height: 44px;
-      border-radius: 10px; flex: 0 0 auto;">WINS {{ winCount }}</button>
+      color: #f3edff; font-family: 'Anton'; font-size: 11px; padding: 0 8px; height: 42px; white-space: nowrap;
+      border-radius: 9px; flex: 0 0 auto;">WINS {{ winCount }}</button>
     <button onClick="{{ toggleSound }}" style="cursor: pointer; border: 1px solid rgba(158,94,255,.5); background: rgba(30,18,52,.85);
-      color: #f3edff; font-size: 17px; width: 44px; height: 44px; border-radius: 10px; display: flex;
+      color: #f3edff; font-size: 15px; width: 38px; height: 42px; border-radius: 9px; display: flex;
       align-items: center; justify-content: center; flex: 0 0 auto;">{{ soundIcon }}</button>
     <button onClick="{{ resetBoard }}" style="cursor: pointer; border: 1px solid rgba(158,94,255,.5); background: rgba(30,18,52,.85);
-      color: #cbb8ef; font-family: 'Oswald'; font-weight: 600; font-size: 11px; letter-spacing: 1px;
-      padding: 0 10px; height: 44px; border-radius: 10px; flex: 0 0 auto;"
+      color: #cbb8ef; font-family: 'Oswald'; font-weight: 600; font-size: 10px; letter-spacing: .5px;
+      padding: 0 7px; height: 42px; border-radius: 9px; flex: 0 0 auto;"
       style-hover="border-color:#f5b40a; color:#f5b40a;">RESET</button>
   </div>
 
@@ -146,9 +152,9 @@
             <span style="font-family: 'Anton'; font-size: 11px; letter-spacing: 3px; color: {{ dv.color }};">{{ dv.label }}</span>
             <span style="flex: 1; height: 1px; background: linear-gradient(90deg, {{ dv.color }}, transparent);"></span>
           </div>
-          <div style="flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
+          <div style="flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: 1fr; gap: 8px;">
             <sc-for list="{{ dv.teams }}" as="t" hint-placeholder-count="5">
-              <div onClick="{{ t.select }}" style="position: relative; cursor: pointer; border-radius: 12px;
+              <div onClick="{{ t.select }}" style="position: relative; cursor: pointer; border-radius: 12px; min-height: 0;
                 overflow: hidden; background: #fff; border: 4px solid {{ t.border }};
                 box-shadow: 0 4px 12px rgba(0,0,0,.55); display: flex; align-items: center;
                 justify-content: center; padding: 5px; transition: transform .12s ease;"
