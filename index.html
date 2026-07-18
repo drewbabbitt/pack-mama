@@ -78,6 +78,13 @@
       </div>
     </div>
 
+    <!-- running total -->
+    <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 3px;">
+      <span style="font-family: 'Anton'; font-size: 17px; line-height: 1; color: #f5b40a; background: #120a20;
+        padding: 5px 10px; border-radius: 8px; border: 2px solid #f5b40a; letter-spacing: 1px;">{{ totalText }}</span>
+      <span style="font-family: 'Anton'; font-size: 8px; letter-spacing: 2px; color: #cbb8ef;">TOTAL</span>
+    </div>
+
     <button onClick="{{ openGivvy }}" style="cursor: pointer; border: 2px solid #f5b40a; background: rgba(245,180,10,.12);
       color: #f5b40a; font-family: 'Anton'; font-size: 13px; letter-spacing: .5px; padding: 0 12px; height: 44px;
       border-radius: 10px; flex: 0 0 auto;" style-hover="background: rgba(245,180,10,.25);">GIVVY</button>
@@ -104,39 +111,6 @@
           align-items: center; justify-content: center; padding: 3px; border: 2px solid #f5b40a;">
           <img src="{{ q.logo }}" alt="{{ q.name }}" style="width: 100%; height: 100%; object-fit: contain;" /></span>
       </sc-for>
-    </div>
-  </sc-if>
-
-  <!-- ===== LIVE AUCTION BAR (running chat bid) ===== -->
-  <sc-if value="{{ hasAuction }}" hint-placeholder-val="{{ false }}">
-    <div style="flex: 0 0 auto; display: flex; align-items: center; gap: 9px; padding: 8px 12px;
-      position: relative; z-index: 5; background: linear-gradient(90deg, rgba(181,35,45,.4), rgba(122,47,224,.35));
-      border-bottom: 2px solid #f5b40a;">
-      <div style="width: 46px; height: 46px; border-radius: 50%; background: #fff; display: flex; flex: 0 0 auto;
-        align-items: center; justify-content: center; padding: 5px; border: 2px solid #f5b40a;">
-        <img src="{{ auctionLogo }}" alt="{{ auctionTeamName }}" style="width: 100%; height: 100%; object-fit: contain;" /></div>
-      <div style="display: flex; flex-direction: column; line-height: 1.05; min-width: 0;">
-        <span style="font-family: 'Anton'; font-size: 11px; letter-spacing: 2px; color: #ffb3a8;">LIVE AUCTION</span>
-        <span style="font-family: 'Anton'; font-size: 17px; color: #fff; white-space: nowrap;">{{ auctionTeamName }}</span>
-      </div>
-      <span style="font-family: 'Anton'; font-size: 34px; line-height: 1; color: #f5b40a; background: #120a20;
-        padding: 6px 14px; border-radius: 10px; border: 2px solid #f5b40a; letter-spacing: 1px; flex: 0 0 auto;">{{ auctionPriceText }}</span>
-      <div style="flex: 1 1 auto;"></div>
-      <button onClick="{{ bidM5 }}" style="cursor: pointer; border: 1px solid rgba(255,255,255,.35); background: rgba(18,10,32,.85);
-        color: #ff9d9d; font-family: 'Anton'; font-size: 13px; padding: 0 9px; height: 44px; border-radius: 8px; flex: 0 0 auto;">−5</button>
-      <button onClick="{{ bidP1 }}" style="cursor: pointer; border: 1px solid #f5b40a; background: rgba(245,180,10,.15);
-        color: #ffd257; font-family: 'Anton'; font-size: 15px; padding: 0 11px; height: 44px; border-radius: 8px; flex: 0 0 auto;">+1</button>
-      <button onClick="{{ bidP5 }}" style="cursor: pointer; border: 1px solid #f5b40a; background: rgba(245,180,10,.15);
-        color: #ffd257; font-family: 'Anton'; font-size: 15px; padding: 0 11px; height: 44px; border-radius: 8px; flex: 0 0 auto;">+5</button>
-      <button onClick="{{ bidP10 }}" style="cursor: pointer; border: 1px solid #f5b40a; background: rgba(245,180,10,.15);
-        color: #ffd257; font-family: 'Anton'; font-size: 15px; padding: 0 9px; height: 44px; border-radius: 8px; flex: 0 0 auto;">+10</button>
-      <button onClick="{{ bidP25 }}" style="cursor: pointer; border: 1px solid #f5b40a; background: rgba(245,180,10,.15);
-        color: #ffd257; font-family: 'Anton'; font-size: 15px; padding: 0 9px; height: 44px; border-radius: 8px; flex: 0 0 auto;">+25</button>
-      <button onClick="{{ auctionSold }}" style="cursor: pointer; border: 2px solid #fff; background: linear-gradient(90deg,#f5b40a,#ffd257);
-        color: #1c1204; font-family: 'Anton'; font-size: 16px; letter-spacing: 1px; padding: 0 18px; height: 44px;
-        border-radius: 8px; flex: 0 0 auto; transition: filter .15s ease;" style-hover="filter: brightness(1.08);">SOLD</button>
-      <button onClick="{{ auctionCancel }}" style="cursor: pointer; border: 1px solid rgba(255,255,255,.35); background: rgba(18,10,32,.85);
-        color: #cbb8ef; font-size: 15px; width: 38px; height: 44px; border-radius: 8px; flex: 0 0 auto;">✕</button>
     </div>
   </sc-if>
 
@@ -180,6 +154,12 @@
                 justify-content: center; padding: 5px; transition: transform .12s ease;"
                 style-hover="transform: translateY(-2px);">
                 <img src="{{ t.logo }}" alt="{{ t.name }}" style="width: 100%; height: 100%; object-fit: contain;" />
+
+                <sc-if value="{{ t.hasBid }}" hint-placeholder-val="{{ false }}">
+                  <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #f5b40a; color: #1c1204;
+                    font-family: 'Anton'; font-size: 16px; letter-spacing: 1px; text-align: center; padding: 2px 0;
+                    z-index: 2; border-top: 2px solid #1c1204;">BID {{ t.bidText }}</div>
+                </sc-if>
 
                 <sc-if value="{{ t.isWon }}" hint-placeholder-val="{{ false }}">
                   <div style="position: absolute; inset: 0; background: rgba(14,8,24,.87);
@@ -325,8 +305,31 @@
           <sc-if value="{{ detailIsAuction }}" hint-placeholder-val="{{ false }}">
             <button onClick="{{ detailBid }}" style="cursor: pointer; border: 2px solid #fff; font-family: 'Anton'; font-size: 19px;
               letter-spacing: 1px; color: #fff; background: linear-gradient(90deg,#b5232d,#e04b3a); padding: 15px; border-radius: 10px;
-              transition: filter .15s ease;" style-hover="filter: brightness(1.1);">START THE AUCTION</button>
-            <div style="font-family: 'Oswald'; font-size: 12px; color: #9c8bbf; text-align: center;">run the bid in chat — the board keeps the running price up top</div>
+              transition: filter .15s ease;" style-hover="filter: brightness(1.1);">START LIVE BID</button>
+            <div style="font-family: 'Oswald'; font-size: 12px; color: #9c8bbf; text-align: center;">bid runs in chat while you rip — the price shows right on the card · tap the card anytime to update</div>
+          </sc-if>
+          <sc-if value="{{ detailIsBid }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; justify-content: center;">
+              <span style="font-family: 'Anton'; font-size: 46px; line-height: 1; color: #f5b40a; background: #120a20;
+                padding: 8px 24px; border-radius: 12px; border: 2px solid #f5b40a; letter-spacing: 2px;">{{ detailBidText }}</span>
+            </div>
+            <div style="display: flex; gap: 8px; justify-content: center;">
+              <button onClick="{{ bidM5 }}" style="cursor: pointer; border: 1px solid rgba(255,255,255,.35); background: rgba(18,10,32,.85);
+                color: #ff9d9d; font-family: 'Anton'; font-size: 15px; flex: 1; height: 48px; border-radius: 9px;">−5</button>
+              <button onClick="{{ bidP1 }}" style="cursor: pointer; border: 1px solid #f5b40a; background: rgba(245,180,10,.15);
+                color: #ffd257; font-family: 'Anton'; font-size: 17px; flex: 1; height: 48px; border-radius: 9px;">+1</button>
+              <button onClick="{{ bidP5 }}" style="cursor: pointer; border: 1px solid #f5b40a; background: rgba(245,180,10,.15);
+                color: #ffd257; font-family: 'Anton'; font-size: 17px; flex: 1; height: 48px; border-radius: 9px;">+5</button>
+              <button onClick="{{ bidP10 }}" style="cursor: pointer; border: 1px solid #f5b40a; background: rgba(245,180,10,.15);
+                color: #ffd257; font-family: 'Anton'; font-size: 17px; flex: 1; height: 48px; border-radius: 9px;">+10</button>
+              <button onClick="{{ bidP25 }}" style="cursor: pointer; border: 1px solid #f5b40a; background: rgba(245,180,10,.15);
+                color: #ffd257; font-family: 'Anton'; font-size: 17px; flex: 1; height: 48px; border-radius: 9px;">+25</button>
+            </div>
+            <button onClick="{{ endLiveBid }}" style="cursor: pointer; border: 2px solid #fff; font-family: 'Anton'; font-size: 19px;
+              letter-spacing: 1px; color: #1c1204; background: linear-gradient(90deg,#f5b40a,#ffd257); padding: 15px; border-radius: 10px;
+              transition: filter .15s ease;" style-hover="filter: brightness(1.08);">SOLD — END THE BID</button>
+            <button onClick="{{ dropLiveBid }}" style="cursor: pointer; border: 2px solid #b5232d; background: rgba(181,35,45,.15);
+              color: #ff9d9d; font-family: 'Anton'; font-size: 13px; padding: 10px; border-radius: 9px;">CANCEL BID — NO SALE</button>
           </sc-if>
           <button onClick="{{ detailCancel }}" style="cursor: pointer; border: none; background: transparent; color: #7c6b9e;
             font-family: 'Oswald'; font-weight: 600; font-size: 12px; letter-spacing: 1px; padding: 4px;">CANCEL</button>
@@ -498,7 +501,7 @@ class Component extends DCLogic {
     givvyMode: 'buyers',
     givvyOpen: false,
     ripsOpen: false,
-    auction: null,   // { teamId, price } — live running chat bid
+    liveBids: {},   // { teamId: price } — running chat bids shown on the cards
   };
 
   logoUrl(abbr) { return './logos/' + abbr + '.svg'; }
@@ -558,7 +561,7 @@ class Component extends DCLogic {
       localStorage.setItem('packMamaBoard', JSON.stringify({
         teams: s.teams.map(t => ({ id: t.id, status: t.status, winner: t.winner })),
         wins: s.wins.map(w => ({ id: w.id, abbr: w.abbr, color: w.color, team: w.team, winner: w.winner, price: w.price || 0 })),
-        auction: s.auction,
+        liveBids: s.liveBids,
       }));
     } catch (e) {}
   }
@@ -576,7 +579,7 @@ class Component extends DCLogic {
           return { ...t, status: st, winner: m.winner };
         }),
         wins: d.wins || [],
-        auction: d.auction && d.auction.teamId ? d.auction : null,
+        liveBids: d.liveBids || {},
       }));
     } catch (e) {}
   }
@@ -621,11 +624,11 @@ class Component extends DCLogic {
   // ---------- tile taps (everything opens the big team popup) ----------
   selectTeam(id) {
     const s = this.state;
-    if (s.auction) return; // live auction running — finish or cancel it first
     const t = s.teams.find(x => x.id === id);
     if (!t) return;
     this.sfx('click');
     if (t.status === 'won') { this.setState({ detail: { teamId: id, kind: 'won' } }); return; }
+    if (s.liveBids[id] != null) { this.setState({ detail: { teamId: id, kind: 'bid' } }); return; }
     if (s.mode === 'sp') {
       this.setState({ detail: { teamId: id, kind: s.spStage === 'second' ? 'sp2' : 'sp1' } });
       return;
@@ -666,27 +669,37 @@ class Component extends DCLogic {
     this.setState({ mode: null, spStage: null, spFirstId: null });
     this.toOverlay(d.teamId, false);
   }
-  // HIGH BID: start a live running bid tracked on the main screen
+  // HIGH BID: live bids run per-team, shown on the cards, while ripping continues
   detailBid() {
     const d = this.state.detail; if (!d) return;
     this.sfx('coin');
-    this.setState({ detail: null, auction: { teamId: d.teamId, price: 0 } });
+    this.setState(s => ({ detail: { teamId: d.teamId, kind: 'bid' },
+      liveBids: { ...s.liveBids, [d.teamId]: 0 } }));
     setTimeout(() => this.persist(), 0);
   }
   bumpBid(n) {
-    if (!this.state.auction) return;
+    const d = this.state.detail; if (!d || this.state.liveBids[d.teamId] == null) return;
     this.sfx('click');
-    this.setState(s => ({ auction: { ...s.auction, price: Math.max(0, (s.auction.price || 0) + n) } }));
+    this.setState(s => ({ liveBids: { ...s.liveBids, [d.teamId]: Math.max(0, (s.liveBids[d.teamId] || 0) + n) } }));
     setTimeout(() => this.persist(), 0);
   }
-  auctionSold() {
-    const a = this.state.auction; if (!a) return;
+  endLiveBid() {
+    const d = this.state.detail; if (!d) return;
+    const price = this.state.liveBids[d.teamId] || 0;
     this.sfx('coin');
-    this.setState({ auction: null, overlay: { teamId: a.teamId, winner: '', announced: false, auction: true, price: a.price || 0 } });
+    this.setState(s => {
+      const lb = { ...s.liveBids }; delete lb[d.teamId];
+      return { detail: null, liveBids: lb,
+        overlay: { teamId: d.teamId, winner: '', announced: false, auction: true, price } };
+    });
     setTimeout(() => this.persist(), 0);
   }
-  auctionCancel() {
-    this.setState({ auction: null });
+  dropLiveBid() {
+    const d = this.state.detail; if (!d) return;
+    this.setState(s => {
+      const lb = { ...s.liveBids }; delete lb[d.teamId];
+      return { detail: null, liveBids: lb };
+    });
     setTimeout(() => this.persist(), 0);
   }
   detailUndo() {
@@ -785,7 +798,7 @@ class Component extends DCLogic {
     this.clearPersist();
     this.setState(s => ({ teams: s.teams.map(t => ({ ...t, status: 'available', winner: null })), wins: [],
       overlay: null, mode: null, spStage: null, spFirstId: null, queue: [], detail: null, chooser: null,
-      saleFocus: null, givvyOpen: false, ripsOpen: false, auction: null }));
+      saleFocus: null, givvyOpen: false, ripsOpen: false, liveBids: {} }));
   }
   componentWillUnmount() {
     if (this.givvyTimer) clearInterval(this.givvyTimer);
@@ -798,7 +811,8 @@ class Component extends DCLogic {
     const s = this.state;
     const withLogo = (t) => t ? { ...t, logo: this.logoUrl(t.abbr) } : t;
     const mapT = (t) => ({ ...withLogo(t), isWon: t.status === 'won',
-      border: (s.queue.indexOf(t.id) !== -1) ? '#f5b40a' : t.color,
+      border: (s.queue.indexOf(t.id) !== -1 || s.liveBids[t.id] != null) ? '#f5b40a' : t.color,
+      hasBid: s.liveBids[t.id] != null, bidText: '$' + (s.liveBids[t.id] || 0),
       select: () => this.selectTeam(t.id) });
     const byDiv = {};
     s.teams.forEach(t => { (byDiv[t.div] = byDiv[t.div] || []).push(t); });
@@ -838,8 +852,8 @@ class Component extends DCLogic {
     } else if (s.mode === 'see2' || s.mode === 'see3') {
       const need = s.mode === 'see2' ? 2 : 3;
       instruction = 'TAP SPUN TEAM ' + Math.min(s.queue.length + 1, need) + ' OF ' + need + ' — BUYER PICKS ONE';
-    } else if (s.mode === 'auction' && !s.auction) {
-      instruction = 'HIGH BID ON — TAP THE TEAM UP FOR AUCTION';
+    } else if (s.mode === 'auction') {
+      instruction = 'HIGH BID ON — TAP A TEAM TO START ITS LIVE BID';
     }
     const queueTeams = s.queue.map(id => withLogo(s.teams.find(t => t.id === id)));
 
@@ -906,6 +920,7 @@ class Component extends DCLogic {
         if (k === 'sp1') return 'stash it… or pass it?';
         if (k === 'sp2') return 'second spin — blind keep';
         if (k === 'auction') return 'up for auction — highest bid takes it';
+        if (k === 'bid') return 'live bid — keep it matched to chat';
         if (k === 'won') return 'won by ' + (detailT && detailT.winner ? detailT.winner : '');
         return 'up on the board';
       })(s.detail ? s.detail.kind : ''),
@@ -921,13 +936,12 @@ class Component extends DCLogic {
 
       hasChooser: !!(s.chooser && s.chooser.length), chooserTeams, chooserCancel: () => this.chooserCancel(),
 
-      hasAuction: !!s.auction,
-      auctionTeamName: (function(){ const t = s.auction ? s.teams.find(x => x.id === s.auction.teamId) : null; return t ? t.city + ' ' + t.name : ''; })(),
-      auctionLogo: s.auction ? this.logoUrl(s.auction.teamId) : '',
-      auctionPriceText: s.auction ? '$' + (s.auction.price || 0) : '$0',
       bidP1: () => this.bumpBid(1), bidP5: () => this.bumpBid(5), bidP10: () => this.bumpBid(10),
       bidP25: () => this.bumpBid(25), bidM5: () => this.bumpBid(-5),
-      auctionSold: () => this.auctionSold(), auctionCancel: () => this.auctionCancel(),
+      endLiveBid: () => this.endLiveBid(), dropLiveBid: () => this.dropLiveBid(),
+      detailIsBid: !!(s.detail && s.detail.kind === 'bid'),
+      detailBidText: s.detail ? '$' + (s.liveBids[s.detail.teamId] || 0) : '$0',
+      totalText: '$' + s.wins.reduce((sum, w) => sum + (w.price || 0), 0),
 
       wins: s.wins.map(w => ({ ...w, logo: this.logoUrl(w.abbr), hasPrice: (w.price || 0) > 0, priceText: '$' + (w.price || 0) })),
       winCount: s.wins.length, noWins: s.wins.length === 0,
