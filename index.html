@@ -40,28 +40,26 @@
   <div style="position: absolute; inset: 0; background:
     linear-gradient(180deg, rgba(12,7,22,.93) 0%, rgba(14,8,26,.9) 45%, rgba(10,6,18,.95) 100%);"></div>
 
-  <!-- ===== PACK MAMA BANNER ===== -->
-  <div style="flex: 0 0 auto; height: 118px; position: relative; z-index: 5;
-    background: url('./photos/packmama-banner.jpg') center 32% / cover no-repeat #0c0913;
-    border-bottom: 3px solid #7a2fe0; box-shadow: 0 6px 24px rgba(122,47,224,.45);">
-    <div style="position: absolute; inset: 0; background: linear-gradient(180deg, transparent 55%, rgba(12,9,19,.85) 100%);"></div>
-  </div>
+  <!-- ===== PACK MAMA BANNER (uncovered, logo band) ===== -->
+  <div style="flex: 0 0 auto; height: 148px; position: relative; z-index: 5;
+    background: url('./photos/packmama-banner.jpg') center / cover no-repeat #0c0913;
+    border-bottom: 3px solid #7a2fe0; box-shadow: 0 6px 24px rgba(122,47,224,.45);"></div>
 
   <!-- ===== MODE CONTROLS ===== -->
-  <div style="flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+  <div style="flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 8px 12px;
     position: relative; z-index: 5; border-bottom: 1px solid rgba(158,94,255,.35);">
     <button onClick="{{ armSP }}" style="cursor: pointer; flex: 1 1 auto; border: 2px solid {{ spBorder }}; color: {{ spColor }};
-      font-family: 'Anton'; font-size: 15px; letter-spacing: .5px; padding: 12px 6px; border-radius: 10px;
+      font-family: 'Anton'; font-size: 15px; letter-spacing: .5px; padding: 10px 6px; border-radius: 10px;
       background: {{ spBg }}; transition: filter .15s ease;" style-hover="filter: brightness(1.12);">
       🧢 STASH · PASS
     </button>
     <button onClick="{{ armSee2 }}" style="cursor: pointer; flex: 1 1 auto; border: 2px solid {{ see2Border }}; color: {{ see2Color }};
-      font-family: 'Anton'; font-size: 15px; letter-spacing: .5px; padding: 12px 6px; border-radius: 10px;
+      font-family: 'Anton'; font-size: 15px; letter-spacing: .5px; padding: 10px 6px; border-radius: 10px;
       background: {{ see2Bg }}; transition: filter .15s ease;" style-hover="filter: brightness(1.12);">
       SEE 2 · PICK 1
     </button>
     <button onClick="{{ armSee3 }}" style="cursor: pointer; flex: 1 1 auto; border: 2px solid {{ see3Border }}; color: {{ see3Color }};
-      font-family: 'Anton'; font-size: 15px; letter-spacing: .5px; padding: 12px 6px; border-radius: 10px;
+      font-family: 'Anton'; font-size: 15px; letter-spacing: .5px; padding: 10px 6px; border-radius: 10px;
       background: {{ see3Bg }}; transition: filter .15s ease;" style-hover="filter: brightness(1.12);">
       SEE 3 · PICK 1
     </button>
@@ -89,7 +87,7 @@
   </sc-if>
 
   <!-- ===== TICKER ===== -->
-  <div style="height: 40px; flex: 0 0 auto; display: flex; align-items: center; position: relative; z-index: 5;
+  <div style="height: 36px; flex: 0 0 auto; display: flex; align-items: center; position: relative; z-index: 5;
     background: #16092b; border-bottom: 2px solid #f5b40a; overflow: hidden;">
     <div style="flex: 0 0 auto; height: 100%; display: flex; align-items: center; gap: 7px;
       padding: 0 14px; background: #f5b40a; color: #1c1204; font-family: 'Anton'; letter-spacing: .5px;
@@ -109,45 +107,39 @@
     </div>
   </div>
 
-  <!-- ===== TEAM GRID (single card, portrait) ===== -->
-  <div style="flex: 1 1 auto; min-height: 0; position: relative; z-index: 5; padding: 10px 12px 8px; display: flex; flex-direction: column;">
-    <div style="flex: 1 1 auto; min-height: 0; overflow-y: auto; background: rgba(24,13,44,.88);
-      border: 2px solid rgba(158,94,255,.45); border-radius: 14px; padding: 10px 12px;
-      display: flex; flex-direction: column; gap: 8px; box-shadow: 0 0 24px rgba(122,47,224,.25);">
+  <!-- ===== TEAM GRID (all 30 visible, big card logos, no names) ===== -->
+  <div style="flex: 1 1 auto; min-height: 0; position: relative; z-index: 5; padding: 8px 12px 6px; display: flex; flex-direction: column;">
+    <div style="flex: 1 1 auto; min-height: 0; overflow: hidden; background: rgba(24,13,44,.88);
+      border: 2px solid rgba(158,94,255,.45); border-radius: 14px; padding: 8px 10px;
+      display: flex; flex-direction: column; gap: 6px; box-shadow: 0 0 24px rgba(122,47,224,.25);">
       <sc-for list="{{ divisions }}" as="dv" hint-placeholder-count="6">
-        <div style="display: flex; flex-direction: column; gap: 5px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-family: 'Anton'; font-size: 12px; letter-spacing: 3px; color: {{ dv.color }};">{{ dv.label }}</span>
+        <div style="flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: 3px;">
+          <div style="flex: 0 0 auto; display: flex; align-items: center; gap: 8px; line-height: 1;">
+            <span style="font-family: 'Anton'; font-size: 11px; letter-spacing: 3px; color: {{ dv.color }};">{{ dv.label }}</span>
             <span style="flex: 1; height: 1px; background: linear-gradient(90deg, {{ dv.color }}, transparent);"></span>
           </div>
-          <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px;">
+          <div style="flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
             <sc-for list="{{ dv.teams }}" as="t" hint-placeholder-count="5">
-              <div onClick="{{ t.select }}" style="position: relative; cursor: pointer; border-radius: 10px;
-                overflow: hidden; min-height: 82px; display: flex; flex-direction: column; align-items: center;
-                justify-content: center; gap: 5px; padding: 7px 4px; background: {{ t.color }};
-                border: 2px solid {{ t.border }}; box-shadow: 0 4px 10px rgba(0,0,0,.5);
-                transition: transform .12s ease;" style-hover="transform: translateY(-2px);">
-                <div style="width: 38px; height: 38px; border-radius: 50%; background: #fff; display: flex;
-                  align-items: center; justify-content: center; z-index: 1; padding: 4px;
-                  border: 2px solid rgba(0,0,0,.15);">
-                  <img src="{{ t.logo }}" alt="{{ t.name }}" style="width: 100%; height: 100%; object-fit: contain;" /></div>
-                <div style="font-family: 'Barlow Condensed'; font-weight: 700; font-size: 11.5px; line-height: 1.02;
-                  text-transform: uppercase; letter-spacing: .3px; text-align: center; color: #fff; max-width: 100%;
-                  overflow-wrap: anywhere; text-shadow: 0 1px 4px rgba(0,0,0,.7); z-index: 1;">{{ t.name }}</div>
+              <div onClick="{{ t.select }}" style="position: relative; cursor: pointer; border-radius: 12px;
+                overflow: hidden; background: #fff; border: 4px solid {{ t.border }};
+                box-shadow: 0 4px 12px rgba(0,0,0,.55); display: flex; align-items: center;
+                justify-content: center; padding: 5px; transition: transform .12s ease;"
+                style-hover="transform: translateY(-2px);">
+                <img src="{{ t.logo }}" alt="{{ t.name }}" style="width: 100%; height: 100%; object-fit: contain;" />
 
                 <sc-if value="{{ t.isStash }}" hint-placeholder-val="{{ false }}">
-                  <div style="position: absolute; top: 4px; right: 4px; background: #f5b40a; color: #1c1204;
-                    font-family: 'Anton'; font-size: 8px; letter-spacing: .5px; padding: 2px 5px; border-radius: 4px;
-                    z-index: 2; border: 1px solid #fff;">STASH</div>
+                  <div style="position: absolute; top: 3px; right: 3px; background: #f5b40a; color: #1c1204;
+                    font-family: 'Anton'; font-size: 9px; letter-spacing: .5px; padding: 2px 6px; border-radius: 4px;
+                    z-index: 2; border: 1px solid #1c1204;">STASH</div>
                 </sc-if>
 
                 <sc-if value="{{ t.isWon }}" hint-placeholder-val="{{ false }}">
-                  <div style="position: absolute; inset: 0; background: rgba(14,8,24,.85); backdrop-filter: grayscale(1);
-                    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; z-index: 3;">
-                    <div style="font-family: 'Anton'; font-size: 13px; color: #f5b40a; border: 2px solid #f5b40a;
-                      border-radius: 4px; padding: 1px 7px; transform: rotate(-8deg); letter-spacing: 2px;">SOLD</div>
-                    <div style="font-family: 'Oswald'; font-weight: 600; font-size: 9px; color: #cbb8ef;
-                      text-align: center; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ t.winner }}</div>
+                  <div style="position: absolute; inset: 0; background: rgba(14,8,24,.87);
+                    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; z-index: 3;">
+                    <div style="font-family: 'Anton'; font-size: 16px; color: #f5b40a; border: 2px solid #f5b40a;
+                      border-radius: 4px; padding: 1px 8px; transform: rotate(-8deg); letter-spacing: 2px;">SOLD</div>
+                    <div style="font-family: 'Oswald'; font-weight: 600; font-size: 10px; color: #cbb8ef;
+                      text-align: center; max-width: 92%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ t.winner }}</div>
                   </div>
                 </sc-if>
               </div>
@@ -158,71 +150,65 @@
     </div>
   </div>
 
-  <!-- ===== BOTTOM: COUNT + GIVVY | RECENT WINS ===== -->
-  <div style="flex: 0 0 218px; display: flex; gap: 10px; padding: 0 12px 12px; position: relative; z-index: 5; min-height: 0;">
-    <div style="flex: 1 1 50%; display: flex; flex-direction: column; gap: 8px; min-height: 0;">
-      <!-- count -->
-      <div style="background: rgba(24,13,44,.88); border: 2px solid rgba(158,94,255,.45); border-radius: 12px;
-        padding: 8px 14px; display: flex; align-items: center; gap: 12px;">
-        <span style="font-family: 'Anton'; font-size: 34px; line-height: 1; color: #fff; background: #120a20;
-          padding: 4px 12px; border-radius: 8px; border: 2px solid #f5b40a; letter-spacing: 2px;">{{ remaining }}</span>
-        <div style="flex: 1;">
-          <div style="font-family: 'Anton'; font-size: 11px; letter-spacing: 2px; color: #cbb8ef;">ON THE BOARD / 30</div>
-          <div style="height: 9px; border-radius: 5px; background: #120a20; overflow: hidden; border: 1px solid rgba(158,94,255,.4); margin-top: 5px;">
-            <div style="height: 100%; width: {{ pct }}%; background: linear-gradient(90deg,#7a2fe0,#f5b40a); transition: width .5s ease;"></div>
-          </div>
-        </div>
-      </div>
-      <!-- givvy -->
-      <div style="flex: 1 1 auto; min-height: 0; background: rgba(24,13,44,.88); border: 2px solid rgba(158,94,255,.45);
-        border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 7px;">
-        <div style="display: flex; gap: 6px; align-items: center;">
-          <span style="font-family: 'Anton'; font-size: 13px; letter-spacing: 1px; color: #f5b40a;">🎁 GIVVY</span>
-          <div style="flex: 1; display: flex; gap: 5px; background: #120a20; border: 1px solid rgba(158,94,255,.4); border-radius: 8px; padding: 3px;">
-            <button onClick="{{ setBuyersMode }}" style="cursor: pointer; flex: 1; border: none; border-radius: 6px; padding: 6px 4px;
-              font-family: 'Anton'; font-size: 11px; color: {{ buyersTabColor }}; background: {{ buyersTabBg }};">BUYERS · {{ buyersCount }}</button>
-            <button onClick="{{ setFollowersMode }}" style="cursor: pointer; flex: 1; border: none; border-radius: 6px; padding: 6px 4px;
-              font-family: 'Anton'; font-size: 11px; color: {{ followersTabColor }}; background: {{ followersTabBg }};">FOLLOWERS</button>
-          </div>
-        </div>
-        <sc-if value="{{ isFollowersMode }}" hint-placeholder-val="{{ false }}">
-          <textarea value="{{ givvyNames }}" onChange="{{ setGivvy }}" placeholder="paste @followers — one per line"
-            style="resize: none; height: 40px; background: #120a20; border: 1px solid rgba(158,94,255,.4); border-radius: 8px;
-            color: #f3edff; font-family: 'Oswald'; font-size: 12px; padding: 6px 8px; outline: none;"></textarea>
-        </sc-if>
-        <div style="flex: 1 1 auto; min-height: 34px; border-radius: 8px; background: #120a20; border: 2px dashed rgba(245,180,10,.55);
-          display: flex; align-items: center; justify-content: center; text-align: center; padding: 4px;
-          font-family: 'Anton'; font-size: 15px; color: {{ givvyColor }}; letter-spacing: 1px;">{{ givvyDisplayText }}</div>
-        <button onClick="{{ spinGivvy }}" style="cursor: pointer; border: 2px solid #f5b40a; border-radius: 8px; padding: 8px;
-          font-family: 'Anton'; font-size: 13px; letter-spacing: 1px; color: #1c1204;
-          background: linear-gradient(90deg,#f5b40a,#ffd257); transition: filter .15s ease;"
-          style-hover="filter: brightness(1.08);">{{ spinLabel }}</button>
+  <!-- ===== BOTTOM STRIP: COUNT | GIVVY | RECENT RIPS ===== -->
+  <div style="flex: 0 0 126px; display: flex; gap: 8px; padding: 0 12px 10px; position: relative; z-index: 5; min-height: 0;">
+    <!-- count -->
+    <div style="flex: 0 0 170px; background: rgba(24,13,44,.88); border: 2px solid rgba(158,94,255,.45); border-radius: 12px;
+      padding: 10px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;">
+      <span style="font-family: 'Anton'; font-size: 44px; line-height: 1; color: #fff; background: #120a20;
+        padding: 4px 16px; border-radius: 8px; border: 2px solid #f5b40a; letter-spacing: 2px;">{{ remaining }}</span>
+      <div style="font-family: 'Anton'; font-size: 10px; letter-spacing: 2px; color: #cbb8ef;">ON THE BOARD / 30</div>
+      <div style="height: 8px; width: 100%; border-radius: 5px; background: #120a20; overflow: hidden; border: 1px solid rgba(158,94,255,.4);">
+        <div style="height: 100%; width: {{ pct }}%; background: linear-gradient(90deg,#7a2fe0,#f5b40a); transition: width .5s ease;"></div>
       </div>
     </div>
-
-    <!-- recent wins -->
-    <div style="flex: 1 1 50%; min-height: 0; background: rgba(24,13,44,.88);
-      border: 2px solid rgba(158,94,255,.45); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px;">
-      <div style="display: flex; align-items: center; justify-content: space-between;">
-        <span style="font-family: 'Anton'; font-size: 13px; letter-spacing: 1px; color: #f5b40a;">👑 RECENT RIPS</span>
-        <span style="font-family: 'Anton'; font-size: 12px; color: #cbb8ef;">{{ winCount }}</span>
+    <!-- givvy -->
+    <div style="flex: 1 1 auto; min-width: 0; background: rgba(24,13,44,.88); border: 2px solid rgba(158,94,255,.45);
+      border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px;">
+      <div style="display: flex; gap: 5px; align-items: center;">
+        <span style="font-family: 'Anton'; font-size: 12px; letter-spacing: 1px; color: #f5b40a;">🎁</span>
+        <div style="flex: 1; display: flex; gap: 4px; background: #120a20; border: 1px solid rgba(158,94,255,.4); border-radius: 8px; padding: 3px;">
+          <button onClick="{{ setBuyersMode }}" style="cursor: pointer; flex: 1; border: none; border-radius: 6px; padding: 5px 4px;
+            font-family: 'Anton'; font-size: 10px; color: {{ buyersTabColor }}; background: {{ buyersTabBg }};">BUYERS · {{ buyersCount }}</button>
+          <button onClick="{{ setFollowersMode }}" style="cursor: pointer; flex: 1; border: none; border-radius: 6px; padding: 5px 4px;
+            font-family: 'Anton'; font-size: 10px; color: {{ followersTabColor }}; background: {{ followersTabBg }};">FOLLOWERS</button>
+        </div>
       </div>
-      <div style="flex: 1 1 auto; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+      <sc-if value="{{ isFollowersMode }}" hint-placeholder-val="{{ false }}">
+        <textarea value="{{ givvyNames }}" onChange="{{ setGivvy }}" placeholder="paste @followers — one per line"
+          style="resize: none; height: 28px; background: #120a20; border: 1px solid rgba(158,94,255,.4); border-radius: 8px;
+          color: #f3edff; font-family: 'Oswald'; font-size: 11px; padding: 4px 8px; outline: none;"></textarea>
+      </sc-if>
+      <div style="flex: 1 1 auto; min-height: 24px; border-radius: 8px; background: #120a20; border: 2px dashed rgba(245,180,10,.55);
+        display: flex; align-items: center; justify-content: center; text-align: center; padding: 3px;
+        font-family: 'Anton'; font-size: 14px; color: {{ givvyColor }}; letter-spacing: 1px; overflow: hidden;">{{ givvyDisplayText }}</div>
+      <button onClick="{{ spinGivvy }}" style="cursor: pointer; border: 2px solid #f5b40a; border-radius: 8px; padding: 6px;
+        font-family: 'Anton'; font-size: 12px; letter-spacing: 1px; color: #1c1204;
+        background: linear-gradient(90deg,#f5b40a,#ffd257); transition: filter .15s ease;"
+        style-hover="filter: brightness(1.08);">{{ spinLabel }}</button>
+    </div>
+    <!-- recent rips -->
+    <div style="flex: 1 1 auto; min-width: 0; background: rgba(24,13,44,.88);
+      border: 2px solid rgba(158,94,255,.45); border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 5px;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-family: 'Anton'; font-size: 12px; letter-spacing: 1px; color: #f5b40a;">👑 RECENT RIPS</span>
+        <span style="font-family: 'Anton'; font-size: 11px; color: #cbb8ef;">{{ winCount }}</span>
+      </div>
+      <div style="flex: 1 1 auto; overflow-y: auto; display: flex; flex-direction: column; gap: 5px;">
         <sc-if value="{{ noWins }}" hint-placeholder-val="{{ true }}">
-          <div style="color: #7c6b9e; font-family: 'Oswald'; font-size: 12px; text-align: center; padding-top: 16px;">no winners yet — let's chase hits!</div>
+          <div style="color: #7c6b9e; font-family: 'Oswald'; font-size: 11px; text-align: center; padding-top: 10px;">no winners yet — let's chase hits!</div>
         </sc-if>
         <sc-for list="{{ wins }}" as="w" hint-placeholder-count="0">
-          <div style="display: flex; align-items: center; gap: 8px; background: rgba(18,10,32,.9); border: 1px solid rgba(158,94,255,.35);
-            border-radius: 8px; padding: 5px 8px; animation: rise .3s ease;">
-            <div style="width: 28px; height: 28px; border-radius: 6px; flex: 0 0 auto; display: flex;
-              align-items: center; justify-content: center; background: #fff; padding: 3px;
+          <div style="display: flex; align-items: center; gap: 7px; background: rgba(18,10,32,.9); border: 1px solid rgba(158,94,255,.35);
+            border-radius: 8px; padding: 4px 7px; animation: rise .3s ease;">
+            <div style="width: 26px; height: 26px; border-radius: 6px; flex: 0 0 auto; display: flex;
+              align-items: center; justify-content: center; background: #fff; padding: 2px;
               border: 2px solid {{ w.color }};">
               <img src="{{ w.logo }}" alt="{{ w.team }}" style="width: 100%; height: 100%; object-fit: contain;" /></div>
-            <div style="min-width: 0;">
-              <div style="font-family: 'Oswald'; font-weight: 700; font-size: 12px; color: #fff; overflow: hidden;
-                text-overflow: ellipsis; white-space: nowrap;">{{ w.winner }}</div>
-              <div style="font-family: 'Barlow Condensed'; font-weight: 600; font-size: 11px; color: #cbb8ef;
-                text-transform: uppercase;">{{ w.team }}</div>
+            <div style="min-width: 0; display: flex; align-items: baseline; gap: 6px; overflow: hidden;">
+              <span style="font-family: 'Oswald'; font-weight: 700; font-size: 12px; color: #fff; white-space: nowrap;">{{ w.winner }}</span>
+              <span style="font-family: 'Barlow Condensed'; font-weight: 600; font-size: 11px; color: #cbb8ef;
+                text-transform: uppercase; white-space: nowrap;">{{ w.team }}</span>
             </div>
           </div>
         </sc-for>
@@ -727,7 +713,7 @@ class Component extends DCLogic {
     const s = this.state;
     const withLogo = (t) => t ? { ...t, logo: this.logoUrl(t.abbr) } : t;
     const mapT = (t) => ({ ...withLogo(t), isWon: t.status === 'won', isStash: t.status === 'stashed',
-      border: (s.queue.indexOf(t.id) !== -1) ? '#f5b40a' : 'rgba(255,255,255,.3)',
+      border: (s.queue.indexOf(t.id) !== -1) ? '#f5b40a' : t.color,
       select: () => this.selectTeam(t.id) });
     const byDiv = {};
     s.teams.forEach(t => { (byDiv[t.div] = byDiv[t.div] || []).push(t); });
