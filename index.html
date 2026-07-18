@@ -26,6 +26,9 @@
   @keyframes rise { 0% { transform: translateY(30px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
   @keyframes logoPop { 0% { transform: scale(0) rotate(-25deg); opacity: 0; } 55% { transform: scale(1.15) rotate(5deg); opacity: 1; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
   @keyframes confettiFall { 0% { transform: translateY(-20vh) rotate(0); opacity: 1; } 100% { transform: translateY(120vh) rotate(720deg); opacity: 1; } }
+  @keyframes fwShoot { 0% { transform: rotate(var(--a)) translateY(0) scale(1); opacity: 0; }
+    8% { opacity: 1; } 75% { opacity: .9; }
+    100% { transform: rotate(var(--a)) translateY(var(--d)) scale(.35); opacity: 0; } }
 </style>
 </helmet>
 
@@ -347,6 +350,14 @@
           border-radius: 2px; z-index: 4; animation: confettiFall {{ c.dur }} linear {{ c.delay }} forwards;"></span>
       </sc-for>
 
+      <!-- team-colored fireworks -->
+      <sc-for list="{{ fireworks }}" as="f" hint-placeholder-count="0">
+        <span style="position: absolute; left: {{ f.left }}; top: {{ f.top }}; width: 7px; height: 7px; border-radius: 50%;
+          background: {{ f.color }}; box-shadow: 0 0 10px {{ f.color }}, 0 0 20px {{ f.color }}; z-index: 4;
+          --a: {{ f.angle }}; --d: {{ f.dist }};
+          animation: fwShoot {{ f.dur }} ease-out {{ f.delay }} infinite;"></span>
+      </sc-for>
+
       <button onClick="{{ closeOverlay }}" style="position: absolute; top: 16px; right: 20px; z-index: 6; cursor: pointer;
         border: 1px solid rgba(255,255,255,.4); background: rgba(0,0,0,.45); color: #fff; width: 44px; height: 44px; border-radius: 50%; font-size: 20px;">✕</button>
 
@@ -456,6 +467,18 @@ class Component extends DCLogic {
   };
 
   logoUrl(abbr) { return './logos/' + abbr + '.svg'; }
+
+  secondary(abbr) {
+    const S = {
+      BAL:'#000000', BOS:'#0C2340', NYY:'#C4CED3', TB:'#8FBCE6', TOR:'#E8291C',
+      CWS:'#C4CED4', CLE:'#E31937', DET:'#FA4616', KC:'#BD9B60', MIN:'#D31145',
+      HOU:'#EB6E1F', LAA:'#003263', ATH:'#EFB21E', SEA:'#005C5C', TEX:'#C0111F',
+      ATL:'#13274F', MIA:'#EF3340', NYM:'#FF5910', PHI:'#002D72', WSH:'#14225A',
+      CHC:'#CC3433', CIN:'#000000', MIL:'#FFC52F', PIT:'#FDB827', STL:'#0C2340',
+      ARI:'#E3D4AD', COL:'#C4CED4', LAD:'#EF3E42', SD:'#FFC425', SF:'#000000',
+    };
+    return S[abbr] || '#ffffff';
+  }
 
   players(abbr) {
     const P = {
@@ -753,15 +776,32 @@ class Component extends DCLogic {
       return { ...t, playerLine: this.players(t.abbr).slice(0, 3).join(' · '), pick: () => this.pickFromChooser(id) };
     });
 
-    let confetti = [];
-    if (s.overlay && s.overlay.announced) {
-      const cols = ['#f5b40a', '#7a2fe0', '#ffffff', '#b789ff', overlayT ? overlayT.color : '#f5b40a'];
-      confetti = Array.from({ length: 70 }, () => ({
+    let confetti = [], fireworks = [];
+    if (s.overlay && s.overlay.announced && overlayT) {
+      // celebration in the winning team's colors
+      const cols = [overlayT.color, this.secondary(overlayT.abbr), '#ffffff'];
+      confetti = Array.from({ length: 80 }, () => ({
         left: Math.floor(Math.random() * 100) + '%',
         color: cols[Math.floor(Math.random() * cols.length)],
         dur: (1.8 + Math.random() * 1.6).toFixed(2) + 's',
         delay: (Math.random() * 0.5).toFixed(2) + 's',
       }));
+      const bursts = [
+        { left: 15, top: 30 }, { left: 84, top: 26 }, { left: 25, top: 68 },
+        { left: 75, top: 64 }, { left: 50, top: 18 }, { left: 8, top: 52 }, { left: 92, top: 50 },
+      ];
+      bursts.forEach((b, bi) => {
+        const n = 14, delay = (bi * 0.45).toFixed(2) + 's', dur = (1.4 + (bi % 3) * 0.25).toFixed(2) + 's';
+        for (let i = 0; i < n; i++) {
+          fireworks.push({
+            left: b.left + '%', top: b.top + '%',
+            angle: Math.round(i * (360 / n)) + 'deg',
+            dist: -(60 + (i % 3) * 22) + 'px',
+            color: cols[i % cols.length],
+            delay, dur,
+          });
+        }
+      });
     }
 
     const modeBtn = (m, on) => ({
@@ -808,7 +848,7 @@ class Component extends DCLogic {
       overlayEntering: !!(s.overlay && !s.overlay.announced),
       setWinnerName: (e) => this.setWinnerName(e), winnerKey: (e) => this.winnerKey(e),
       crownWinner: () => this.crownWinner(), confirmWin: () => this.confirmWin(), closeOverlay: () => this.closeOverlay(),
-      confetti,
+      confetti, fireworks,
 
       givvyNames: s.givvyNames, setGivvy: (e) => this.setGivvy(e), spinGivvy: () => this.spinGivvy(),
       givvyDisplayText: s.givvyDisplay || 'ready to draw',
