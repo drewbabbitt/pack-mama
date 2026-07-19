@@ -36,24 +36,86 @@
   @keyframes fwShoot { 0% { transform: rotate(var(--a)) translateY(0) scale(1); opacity: 0; }
     8% { opacity: 1; } 75% { opacity: .9; }
     100% { transform: rotate(var(--a)) translateY(var(--d)) scale(.35); opacity: 0; } }
+
+  /* ===== STREAM BROADCAST LAYOUT (?view=stream): header · camera gap · grid · footer ===== */
+  .pm-app[data-view="stream"] { background: transparent !important; }
+  .pm-app[data-view="stream"] .pm-dimmer,
+  .pm-app[data-view="stream"] .pm-banner,
+  .pm-app[data-view="stream"] .pm-taskbar,
+  .pm-app[data-view="stream"] .pm-instruction,
+  .pm-app[data-view="stream"] .pm-ticker { display: none !important; }
+  .pm-app[data-view="stream"] .pm-gridwrap { flex: 0 0 800px; padding: 12px 14px 14px;
+    background: linear-gradient(180deg, rgba(12,7,22,.98), rgba(9,5,16,1)); border-top: 3px solid #f5b40a; }
+  .pm-cameragap { flex: 1 1 auto; min-height: 0; }   /* transparent — the camera source shows through */
+
+  .pm-sheader { flex: 0 0 auto; height: 150px; display: flex; align-items: center; gap: 16px; padding: 0 26px;
+    position: relative; z-index: 6; background: linear-gradient(180deg, #16092b, #120a20);
+    border-bottom: 3px solid #f5b40a; box-shadow: 0 6px 24px rgba(0,0,0,.6); }
+  .pm-sheader-logo { width: 102px; height: 102px; border-radius: 50%; border: 3px solid #f5b40a; box-shadow: 0 0 26px rgba(245,180,10,.4); flex: 0 0 auto; }
+  .pm-sheader-word { font-family: 'Anton'; font-size: 56px; letter-spacing: 2px; color: #fff; text-transform: uppercase; line-height: .9; }
+  .pm-sheader-word span { color: #f5b40a; }
+  .pm-sheader-live { display: flex; align-items: center; gap: 9px; background: #7a2fe0; border-radius: 999px;
+    padding: 9px 22px; font-family: 'Anton'; font-size: 28px; letter-spacing: 3px; color: #fff; }
+  .pm-sheader-live .dot { width: 15px; height: 15px; border-radius: 50%; background: #ff3b5c; box-shadow: 0 0 12px #ff3b5c; animation: blink 1.4s ease-in-out infinite; }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+  .pm-sheader-spots { margin-left: auto; text-align: right; line-height: .85; flex: 0 0 auto; }
+  .pm-sheader-spots i { font-style: normal; font-family: 'Anton'; font-size: 62px; color: #f5b40a; text-shadow: 0 2px 10px rgba(0,0,0,.6); }
+  .pm-sheader-spots i small { font-size: 30px; color: #cbb8ef; }
+  .pm-sheader-spots b { display: block; font-family: 'Anton'; font-size: 18px; letter-spacing: 5px; color: #9c8bbf; margin-top: 2px; }
+  .pm-sctrls { display: flex; gap: 8px; flex: 0 0 auto; }
+  .pm-sctrls button { cursor: pointer; font-family: 'Anton'; font-size: 18px; letter-spacing: 1px;
+    padding: 13px 13px; border-radius: 10px; white-space: nowrap; transition: filter .15s ease; }
+
+  .pm-sfooter { flex: 0 0 auto; height: 112px; display: flex; align-items: center; position: relative; z-index: 6;
+    overflow: hidden; background: linear-gradient(180deg, #120a20, #16092b); border-top: 3px solid #f5b40a; }
+  .pm-sfooter-live { flex: 0 0 auto; height: 100%; display: flex; align-items: center; gap: 11px; padding: 0 26px;
+    background: #f5b40a; color: #1c1204; font-family: 'Anton'; font-size: 32px; letter-spacing: 1px; }
+  .pm-sfooter-live .dot { width: 14px; height: 14px; border-radius: 50%; background: #b5232d; }
+  .pm-sfooter-scroll { flex: 1 1 auto; overflow: hidden; }
+  .pm-sfooter-track { display: inline-flex; white-space: nowrap; animation: tickerScroll 42s linear infinite; will-change: transform; }
+  .pm-sfooter-track > span { display: inline-flex; align-items: center; font-family: 'Anton'; font-size: 36px; letter-spacing: 1px; padding: 0 34px; }
+  .pm-sfooter-track .crown { opacity: .6; color: #9e5eff; margin-right: 26px; }
+  .pm-srip { position: absolute; inset: 0; z-index: 7; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(90deg, #7a2fe0, #f5b40a, #7a2fe0); background-size: 200% 100%; animation: slideBg 2.2s linear infinite; }
+  .pm-srip span { font-family: 'Anton'; font-size: 54px; letter-spacing: 2px; color: #1c1204; text-transform: uppercase; text-shadow: 0 2px 6px rgba(255,255,255,.35); }
+  @keyframes slideBg { to { background-position: 200% 0; } }
+  /* full-screen win reveal on stream (no banner to clear) */
+  .pm-app[data-view="stream"] .pm-takeover { top: 0 !important; }
 </style>
 </helmet>
 
-<div class="pm-app" style="display: flex; flex-direction: column; color: #f3edff;
+<div class="pm-app" data-view="{{ viewMode }}" style="display: flex; flex-direction: column; color: #f3edff;
   font-family: 'Oswald', sans-serif; overflow: hidden; position: relative;
   background: url('./photos/stands.jpg') center 30% / cover no-repeat #0c0913;">
 
   <!-- purple studio dimmer -->
-  <div style="position: absolute; inset: 0; background:
+  <div class="pm-dimmer" style="position: absolute; inset: 0; background:
     linear-gradient(180deg, rgba(12,7,22,.93) 0%, rgba(14,8,26,.9) 45%, rgba(10,6,18,.95) 100%);"></div>
 
+  <!-- ===== STREAM HEADER + CAMERA GAP (only in ?view=stream) ===== -->
+  <sc-if value="{{ isStream }}" hint-placeholder-val="{{ false }}">
+    <div class="pm-sheader">
+      <img class="pm-sheader-logo" src="./icon.png" alt="Pack Mama" />
+      <div class="pm-sheader-word">PACK <span>MAMA</span></div>
+      <div class="pm-sheader-live"><span class="dot"></span>LIVE</div>
+      <div class="pm-sheader-spots"><i>{{ streamSpots }}<small>/30</small></i><b>SPOTS LEFT</b></div>
+      <div class="pm-sctrls">
+        <button onClick="{{ armSP }}" style="border: 2px solid {{ spBorder }}; color: {{ spColor }}; background: {{ spBg }};" style-hover="filter: brightness(1.12);">STASH·PASS</button>
+        <button onClick="{{ armSee2 }}" style="border: 2px solid {{ see2Border }}; color: {{ see2Color }}; background: {{ see2Bg }};" style-hover="filter: brightness(1.12);">SEE 2</button>
+        <button onClick="{{ armSee3 }}" style="border: 2px solid {{ see3Border }}; color: {{ see3Color }}; background: {{ see3Bg }};" style-hover="filter: brightness(1.12);">SEE 3</button>
+        <button onClick="{{ armHB }}" style="border: 2px solid {{ hbBorder }}; color: {{ hbColor }}; background: {{ hbBg }};" style-hover="filter: brightness(1.12);">HIGH BID</button>
+      </div>
+    </div>
+    <div class="pm-cameragap"></div>
+  </sc-if>
+
   <!-- ===== PACK MAMA BANNER (front layer, full art, zero crop) ===== -->
-  <div style="flex: 0 0 auto; width: 100%; aspect-ratio: 1800 / 535; position: relative; z-index: 70;
+  <div class="pm-banner" style="flex: 0 0 auto; width: 100%; aspect-ratio: 1800 / 535; position: relative; z-index: 70;
     background: url('./photos/packmama-banner.jpg') center / 100% 100% no-repeat #0c0913;
     border-bottom: 3px solid #f5b40a; box-shadow: 0 10px 32px rgba(0,0,0,.85);"></div>
 
   <!-- ===== UNIFIED TASKBAR (no-wrap, self-compressing) ===== -->
-  <div style="flex: 0 0 auto; display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; padding: 6px 10px;
+  <div class="pm-taskbar" style="flex: 0 0 auto; display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; padding: 6px 10px;
     position: relative; z-index: 5; border-bottom: 1px solid rgba(158,94,255,.35);">
     <button onClick="{{ armSP }}" style="cursor: pointer; flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden;
       border: 2px solid {{ spBorder }}; color: {{ spColor }};
@@ -113,7 +175,7 @@
 
   <!-- mode instruction strip -->
   <sc-if value="{{ hasInstruction }}" hint-placeholder-val="{{ false }}">
-    <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 10px;
+    <div class="pm-instruction" style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 10px;
       padding: 8px 12px; position: relative; z-index: 5; background: rgba(122,47,224,.28);
       border-bottom: 1px solid rgba(158,94,255,.4);">
       <span style="font-family: 'Anton'; font-size: 17px; letter-spacing: 1px; color: #f5b40a;">{{ instruction }}</span>
@@ -126,7 +188,7 @@
   </sc-if>
 
   <!-- ===== TICKER ===== -->
-  <div style="height: 32px; flex: 0 0 auto; display: flex; align-items: center; position: relative; z-index: 5;
+  <div class="pm-ticker" style="height: 32px; flex: 0 0 auto; display: flex; align-items: center; position: relative; z-index: 5;
     background: #16092b; border-bottom: 2px solid #f5b40a; overflow: hidden;">
     <div style="flex: 0 0 auto; height: 100%; display: flex; align-items: center; gap: 7px;
       padding: 0 14px; background: #f5b40a; color: #1c1204; font-family: 'Anton'; letter-spacing: .5px;
@@ -147,7 +209,7 @@
   </div>
 
   <!-- ===== TEAM GRID (all 30 visible, big card logos, no names) ===== -->
-  <div style="flex: 1 1 auto; min-height: 0; position: relative; z-index: 5; padding: 8px 12px 10px; display: flex; flex-direction: column;">
+  <div class="pm-gridwrap" style="flex: 1 1 auto; min-height: 0; position: relative; z-index: 5; padding: 8px 12px 10px; display: flex; flex-direction: column;">
     <div style="flex: 1 1 auto; min-height: 0; overflow: hidden; background: rgba(24,13,44,.88);
       border: 2px solid rgba(158,94,255,.45); border-radius: 14px; padding: 8px 10px;
       display: flex; flex-direction: column; gap: 6px; box-shadow: 0 0 24px rgba(122,47,224,.25);">
@@ -191,6 +253,23 @@
       </sc-for>
     </div>
   </div>
+
+  <!-- ===== STREAM FOOTER (only in ?view=stream) — live info + rip reveal ===== -->
+  <sc-if value="{{ isStream }}" hint-placeholder-val="{{ false }}">
+    <div class="pm-sfooter">
+      <div class="pm-sfooter-live"><span class="dot"></span>LIVE BOARD</div>
+      <div class="pm-sfooter-scroll">
+        <div class="pm-sfooter-track">
+          <sc-for list="{{ tickerLoop }}" as="ti" hint-placeholder-count="8">
+            <span style="color: {{ ti.color }};"><span class="crown">👑</span>{{ ti.text }}</span>
+          </sc-for>
+        </div>
+      </div>
+      <sc-if value="{{ streamRip }}" hint-placeholder-val="{{ false }}">
+        <div class="pm-srip"><span>🔥 {{ streamRipText }}</span></div>
+      </sc-if>
+    </div>
+  </sc-if>
 
   <!-- ===== GIVVY POPOVER ===== -->
   <sc-if value="{{ hasGivvyOpen }}" hint-placeholder-val="{{ false }}">
@@ -384,7 +463,7 @@
 
   <!-- ===== WIN TAKEOVER ===== -->
   <sc-if value="{{ overlayTeam }}" hint-placeholder-val="{{ false }}">
-    <div style="position: fixed; left: 0; right: 0; bottom: 0; top: calc(100vw / 3.365 + 3px); z-index: 60; overflow: hidden;
+    <div class="pm-takeover" style="position: fixed; left: 0; right: 0; bottom: 0; top: calc(100vw / 3.365 + 3px); z-index: 60; overflow: hidden;
       background: url('{{ overlayTeam.stadium }}') center 60% / cover no-repeat, url('./photos/aerial-bw.jpg') center 70% / cover no-repeat #0c0913;
       display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px;">
       <div style="position: absolute; inset: 0; background: {{ overlayTeam.color }}; opacity: .55; mix-blend-mode: multiply;"></div>
@@ -1026,8 +1105,14 @@ class Component extends DCLogic {
       ? { bg: 'linear-gradient(90deg,#b5232d,#e04b3a)', color: '#fff', border: '#f5b40a' }
       : { bg: 'rgba(30,18,52,.85)', color: '#cbb8ef', border: 'rgba(158,94,255,.5)' };
 
+    if (this._isStream === undefined) this._isStream = (new URLSearchParams(location.search).get('view') === 'stream');
+
     return {
       divisions, remaining, pct, tickerLoop,
+      viewMode: this._isStream ? 'stream' : 'board', isStream: this._isStream,
+      streamSpots: remaining, streamLastWin: s.wins.length ? (s.wins[0].winner + ' → ' + s.wins[0].team) : 'first rip coming up',
+      streamRip: !!(s.overlay && s.overlay.announced && overlayT),
+      streamRipText: (s.overlay && overlayT) ? ((s.overlay.winner || '') + ' RIPPED THE ' + overlayT.name.toUpperCase() + '!') : '',
       soundIcon: s.soundOn ? '🔊' : '🔇',
       toggleSound: () => this.toggleSound(),
       resetBoard: () => this.resetBoard(),
