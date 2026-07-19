@@ -44,27 +44,27 @@
   .pm-app[data-view="stream"] .pm-taskbar,
   .pm-app[data-view="stream"] .pm-instruction,
   .pm-app[data-view="stream"] .pm-ticker { display: none !important; }
-  .pm-app[data-view="stream"] .pm-gridwrap { flex: 0 0 800px; padding: 12px 14px 14px;
+  .pm-app[data-view="stream"] .pm-gridwrap { flex: 0 0 720px; padding: 12px 14px 14px;
     background: linear-gradient(180deg, rgba(12,7,22,.98), rgba(9,5,16,1)); border-top: 3px solid #f5b40a; }
   .pm-cameragap { flex: 1 1 auto; min-height: 0; }   /* transparent — the camera source shows through */
 
-  .pm-sheader { flex: 0 0 auto; height: 150px; display: flex; align-items: center; gap: 16px; padding: 0 26px;
-    position: relative; z-index: 6; background: linear-gradient(180deg, #16092b, #120a20);
-    border-bottom: 3px solid #f5b40a; box-shadow: 0 6px 24px rgba(0,0,0,.6); }
-  .pm-sheader-logo { width: 108px; height: 108px; border-radius: 50%; box-shadow: 0 0 26px rgba(245,180,10,.4); flex: 0 0 auto; }
-  .pm-sheader-word { font-family: 'Anton'; font-size: 56px; letter-spacing: 2px; color: #fff; text-transform: uppercase; line-height: .9; }
-  .pm-sheader-word span { color: #f5b40a; }
+  /* real Pack Mama banner as the stream header */
+  .pm-sbanner { flex: 0 0 auto; width: 100%; aspect-ratio: 1800 / 535; position: relative; z-index: 6;
+    background: url('./photos/packmama-banner.jpg') center / 100% 100% no-repeat #0c0913;
+    border-bottom: 3px solid #f5b40a; box-shadow: 0 8px 26px rgba(0,0,0,.7); }
+  .pm-sinfobar { flex: 0 0 auto; height: 78px; display: flex; align-items: center; gap: 16px; padding: 0 24px;
+    position: relative; z-index: 6; background: linear-gradient(180deg, #16092b, #120a20); border-bottom: 2px solid #f5b40a; }
   .pm-sheader-live { display: flex; align-items: center; gap: 9px; background: #7a2fe0; border-radius: 999px;
-    padding: 9px 22px; font-family: 'Anton'; font-size: 28px; letter-spacing: 3px; color: #fff; }
-  .pm-sheader-live .dot { width: 15px; height: 15px; border-radius: 50%; background: #ff3b5c; box-shadow: 0 0 12px #ff3b5c; animation: blink 1.4s ease-in-out infinite; }
+    padding: 8px 20px; font-family: 'Anton'; font-size: 26px; letter-spacing: 3px; color: #fff; flex: 0 0 auto; }
+  .pm-sheader-live .dot { width: 14px; height: 14px; border-radius: 50%; background: #ff3b5c; box-shadow: 0 0 12px #ff3b5c; animation: blink 1.4s ease-in-out infinite; }
   @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
-  .pm-sheader-spots { margin-left: auto; text-align: right; line-height: .85; flex: 0 0 auto; }
-  .pm-sheader-spots i { font-style: normal; font-family: 'Anton'; font-size: 62px; color: #f5b40a; text-shadow: 0 2px 10px rgba(0,0,0,.6); }
-  .pm-sheader-spots i small { font-size: 30px; color: #cbb8ef; }
-  .pm-sheader-spots b { display: block; font-family: 'Anton'; font-size: 18px; letter-spacing: 5px; color: #9c8bbf; margin-top: 2px; }
+  .pm-sheader-tag { font-family: 'Anton'; font-size: 24px; letter-spacing: 2px; color: #cbb8ef; }
+  .pm-sheader-spots { margin-left: auto; font-family: 'Anton'; font-size: 42px; color: #f5b40a; line-height: 1;
+    text-shadow: 0 2px 10px rgba(0,0,0,.6); flex: 0 0 auto; }
+  .pm-sheader-spots small { font-size: 22px; color: #cbb8ef; letter-spacing: 1px; }
   .pm-sctrls { display: flex; gap: 8px; flex: 0 0 auto; }
-  .pm-sctrls button { cursor: pointer; font-family: 'Anton'; font-size: 18px; letter-spacing: 1px;
-    padding: 13px 13px; border-radius: 10px; white-space: nowrap; transition: filter .15s ease; }
+  .pm-sctrls button { cursor: pointer; font-family: 'Anton'; font-size: 17px; letter-spacing: 1px;
+    padding: 11px 12px; border-radius: 10px; white-space: nowrap; transition: filter .15s ease; }
 
   .pm-sfooter { flex: 0 0 auto; height: 112px; display: flex; align-items: center; position: relative; z-index: 6;
     overflow: hidden; background: linear-gradient(180deg, #120a20, #16092b); border-top: 3px solid #f5b40a; }
@@ -92,21 +92,13 @@
   <div class="pm-dimmer" style="position: absolute; inset: 0; background:
     linear-gradient(180deg, rgba(12,7,22,.93) 0%, rgba(14,8,26,.9) 45%, rgba(10,6,18,.95) 100%);"></div>
 
-  <!-- ===== STREAM HEADER + CAMERA GAP (only in ?view=stream) ===== -->
+  <!-- ===== STREAM HEADER (real Pack Mama banner) + CAMERA GAP (only in ?view=stream) ===== -->
   <sc-if value="{{ isStream }}" hint-placeholder-val="{{ false }}">
-    <div class="pm-sheader">
-      <svg class="pm-sheader-logo" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-label="Pack Mama">
-        <defs><radialGradient id="pmbg" cx="50%" cy="32%" r="75%">
-          <stop offset="0%" stop-color="#3a1f74"/><stop offset="100%" stop-color="#150a29"/></radialGradient></defs>
-        <circle cx="60" cy="60" r="55" fill="url(#pmbg)" stroke="#f5b40a" stroke-width="5"/>
-        <path d="M38 50 L45 31 L53 43 L60 27 L67 43 L75 31 L82 50 Z" fill="#f5b40a" stroke="#f5b40a" stroke-width="2" stroke-linejoin="round"/>
-        <circle cx="45" cy="31" r="3.2" fill="#f5b40a"/><circle cx="60" cy="27" r="3.6" fill="#f5b40a"/><circle cx="75" cy="31" r="3.2" fill="#f5b40a"/>
-        <text x="60" y="92" text-anchor="middle" font-family="Anton, sans-serif" font-size="42" letter-spacing="1">
-          <tspan fill="#fff">P</tspan><tspan fill="#f5b40a">M</tspan></text>
-      </svg>
-      <div class="pm-sheader-word">PACK <span>MAMA</span></div>
+    <div class="pm-sbanner"></div>
+    <div class="pm-sinfobar">
       <div class="pm-sheader-live"><span class="dot"></span>LIVE</div>
-      <div class="pm-sheader-spots"><i>{{ streamSpots }}<small>/30</small></i><b>SPOTS LEFT</b></div>
+      <div class="pm-sheader-tag">MLB BREAKS · LIVE ON WHATNOT</div>
+      <div class="pm-sheader-spots">{{ streamSpots }}<small>/30 SPOTS LEFT</small></div>
       <div class="pm-sctrls">
         <button onClick="{{ armSP }}" style="border: 2px solid {{ spBorder }}; color: {{ spColor }}; background: {{ spBg }};" style-hover="filter: brightness(1.12);">STASH·PASS</button>
         <button onClick="{{ armSee2 }}" style="border: 2px solid {{ see2Border }}; color: {{ see2Color }}; background: {{ see2Bg }};" style-hover="filter: brightness(1.12);">SEE 2</button>
