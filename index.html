@@ -51,7 +51,7 @@
   .pm-sheader { flex: 0 0 auto; height: 150px; display: flex; align-items: center; gap: 16px; padding: 0 26px;
     position: relative; z-index: 6; background: linear-gradient(180deg, #16092b, #120a20);
     border-bottom: 3px solid #f5b40a; box-shadow: 0 6px 24px rgba(0,0,0,.6); }
-  .pm-sheader-logo { width: 102px; height: 102px; border-radius: 50%; border: 3px solid #f5b40a; box-shadow: 0 0 26px rgba(245,180,10,.4); flex: 0 0 auto; }
+  .pm-sheader-logo { width: 108px; height: 108px; border-radius: 50%; box-shadow: 0 0 26px rgba(245,180,10,.4); flex: 0 0 auto; }
   .pm-sheader-word { font-family: 'Anton'; font-size: 56px; letter-spacing: 2px; color: #fff; text-transform: uppercase; line-height: .9; }
   .pm-sheader-word span { color: #f5b40a; }
   .pm-sheader-live { display: flex; align-items: center; gap: 9px; background: #7a2fe0; border-radius: 999px;
@@ -95,7 +95,15 @@
   <!-- ===== STREAM HEADER + CAMERA GAP (only in ?view=stream) ===== -->
   <sc-if value="{{ isStream }}" hint-placeholder-val="{{ false }}">
     <div class="pm-sheader">
-      <img class="pm-sheader-logo" src="./icon.png" alt="Pack Mama" />
+      <svg class="pm-sheader-logo" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-label="Pack Mama">
+        <defs><radialGradient id="pmbg" cx="50%" cy="32%" r="75%">
+          <stop offset="0%" stop-color="#3a1f74"/><stop offset="100%" stop-color="#150a29"/></radialGradient></defs>
+        <circle cx="60" cy="60" r="55" fill="url(#pmbg)" stroke="#f5b40a" stroke-width="5"/>
+        <path d="M38 50 L45 31 L53 43 L60 27 L67 43 L75 31 L82 50 Z" fill="#f5b40a" stroke="#f5b40a" stroke-width="2" stroke-linejoin="round"/>
+        <circle cx="45" cy="31" r="3.2" fill="#f5b40a"/><circle cx="60" cy="27" r="3.6" fill="#f5b40a"/><circle cx="75" cy="31" r="3.2" fill="#f5b40a"/>
+        <text x="60" y="92" text-anchor="middle" font-family="Anton, sans-serif" font-size="42" letter-spacing="1">
+          <tspan fill="#fff">P</tspan><tspan fill="#f5b40a">M</tspan></text>
+      </svg>
       <div class="pm-sheader-word">PACK <span>MAMA</span></div>
       <div class="pm-sheader-live"><span class="dot"></span>LIVE</div>
       <div class="pm-sheader-spots"><i>{{ streamSpots }}<small>/30</small></i><b>SPOTS LEFT</b></div>
@@ -651,18 +659,73 @@ class Component extends DCLogic {
   }
 
   // ---------- persistence ----------
+  snapshot() {
+    const s = this.state;
+    return {
+      teams: s.teams.map(t => ({ id: t.id, status: t.status, winner: t.winner })),
+      wins: s.wins.map(w => ({ id: w.id, abbr: w.abbr, color: w.color, team: w.team, winner: w.winner, price: w.price || 0 })),
+      liveBids: s.liveBids,
+    };
+  }
   persist() {
     if (this.demo) return;   // ?demo=1 is a read-only preview — never write to saved state
-    try {
-      const s = this.state;
-      localStorage.setItem('packMamaBoard', JSON.stringify({
-        teams: s.teams.map(t => ({ id: t.id, status: t.status, winner: t.winner })),
-        wins: s.wins.map(w => ({ id: w.id, abbr: w.abbr, color: w.color, team: w.team, winner: w.winner, price: w.price || 0 })),
-        liveBids: s.liveBids,
-      }));
-    } catch (e) {}
+    try { localStorage.setItem('packMamaBoard', JSON.stringify(this.snapshot())); } catch (e) {}
+    this.pushSync();         // mirror to the stream in real time (iPad → Firebase → OBS)
   }
   clearPersist() { try { localStorage.removeItem('packMamaBoard'); } catch (e) {} }
+
+  // ---------- realtime sync (Firebase RTDB REST; iPad controls, OBS mirrors) ----------
+  // ?room=<id> turns sync on. Full board = controller (pushes); ?view=stream = display (pulls).
+  // Set FIREBASE_DB once the Firebase Realtime Database exists (or pass ?fb=<dburl> to test).
+  syncCfg() {
+    if (this._sync !== undefined) return this._sync;
+    const FIREBASE_DB = 'https://PACKMAMA_DB_PLACEHOLDER.firebaseio.com';
+    const q = new URLSearchParams(location.search);
+    const room = q.get('room');
+    let db = (q.get('fb') || FIREBASE_DB).replace(/\/+$/, '');
+    const enabled = !!room && db.indexOf('PLACEHOLDER') === -1;
+    this._sync = enabled
+      ? { url: db + '/rooms/' + encodeURIComponent(room) + '.json', role: (q.get('view') === 'stream' ? 'pull' : 'push') }
+      : null;
+    return this._sync;
+  }
+  startSync() {
+    const c = this.syncCfg(); if (!c) return;
+    if (c.role === 'pull') this.startPull();
+    else setTimeout(() => this.pushSync(), 400);   // controller seeds the room on load
+  }
+  pushSync() {
+    const c = this.syncCfg(); if (!c || c.role !== 'push') return;
+    try { fetch(c.url, { method: 'PUT', body: JSON.stringify(this.snapshot()) }); } catch (e) {}
+  }
+  applyRemote(d) {
+    if (!d || !d.teams) return;
+    this.setState(s => ({
+      teams: s.teams.map(t => {
+        const m = d.teams.find(x => x.id === t.id);
+        if (!m) return t;
+        return { ...t, status: m.status === 'stashed' ? 'available' : m.status, winner: m.winner };
+      }),
+      wins: d.wins || [], liveBids: d.liveBids || {},
+    }));
+  }
+  startPull() {
+    const c = this.syncCfg(); if (!c) return;
+    const connect = () => {
+      try {
+        const es = new EventSource(c.url);   // Firebase streams put/patch events over SSE
+        es.addEventListener('put', (e) => {
+          try { const p = JSON.parse(e.data); if (p && p.path === '/' && p.data) this.applyRemote(p.data); } catch (x) {}
+        });
+        es.onerror = () => { es.close(); setTimeout(connect, 3000); };
+        this._es = es;
+      } catch (e) { /* EventSource blocked — poll fallback still runs */ }
+    };
+    connect();
+    this._pullTimer = setInterval(() => {   // safety-net poll in case SSE is blocked/stalls
+      fetch(c.url).then(r => r.json()).then(d => this.applyRemote(d)).catch(() => {});
+    }, 4000);
+  }
   seedDemo() {
     this.demo = true;
     const wins = [['KC','royalsroom'], ['PIT','buccos_mike'], ['SEA','pnw_pulls'],
@@ -674,9 +737,12 @@ class Component extends DCLogic {
   }
   componentDidMount() {
     this.loadClips();
+    this.startSync();   // realtime mirror if ?room is set (pull for stream display, push for controller)
     try {
       // ?demo=1 → standalone preview (seed some winners, don't touch saved state)
       if (new URLSearchParams(location.search).get('demo')) { this.seedDemo(); return; }
+      // a display pulling live state ignores local storage — the room is the source of truth
+      if (this._sync && this._sync.role === 'pull') return;
       const raw = localStorage.getItem('packMamaBoard');
       if (!raw) return;
       const d = JSON.parse(raw);
