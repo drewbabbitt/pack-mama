@@ -573,6 +573,7 @@ class Component extends DCLogic {
 
   // ---------- persistence ----------
   persist() {
+    if (this.demo) return;   // ?demo=1 is a read-only preview — never write to saved state
     try {
       const s = this.state;
       localStorage.setItem('packMamaBoard', JSON.stringify({
@@ -584,6 +585,7 @@ class Component extends DCLogic {
   }
   clearPersist() { try { localStorage.removeItem('packMamaBoard'); } catch (e) {} }
   seedDemo() {
+    this.demo = true;
     const wins = [['KC','royalsroom'], ['PIT','buccos_mike'], ['SEA','pnw_pulls'],
       ['ATL','chopnation'], ['NYM','amazin_ave'], ['LAD','bluecrew_cards']];
     this.setState(s => ({
@@ -592,6 +594,7 @@ class Component extends DCLogic {
     }));
   }
   componentDidMount() {
+    this.loadClips();
     try {
       // ?demo=1 → standalone preview (seed some winners, don't touch saved state)
       if (new URLSearchParams(location.search).get('demo')) { this.seedDemo(); return; }
@@ -611,7 +614,10 @@ class Component extends DCLogic {
     } catch (e) {}
   }
 
-  // ---------- audio (fully synthesized — no external files) ----------
+  // ---------- audio ----------
+  // Primary sounds are real samples in ./sounds/ (hit = ball off the bat, cheer =
+  // stadium crowd). The synthesized crack()/cheer() below are kept only as a
+  // fallback if the files can't be fetched/decoded (offline, etc).
   ensureAudio() {
     if (!this.actx) {
       try {
@@ -622,6 +628,35 @@ class Component extends DCLogic {
       } catch (e) {}
     }
     if (this.actx && this.actx.state === 'suspended') this.actx.resume();
+  }
+  // decode the mp3 clips into buffers once (context may be suspended — decoding still works)
+  loadClips() {
+    this.ensureAudio(); if (!this.actx || this._clipsLoading) return;
+    this._clipsLoading = true; this.clips = this.clips || {}; this._playing = this._playing || {};
+    const load = (name, url) => fetch(url).then(r => r.arrayBuffer())
+      .then(b => this.actx.decodeAudioData(b)).then(buf => { this.clips[name] = buf; }).catch(() => {});
+    load('hit', './sounds/hit.mp3');
+    load('cheer', './sounds/cheer.mp3');
+  }
+  // play a decoded clip; stops any prior instance of the same clip so rapid taps /
+  // back-to-back wins don't pile up. Returns false if the clip isn't ready.
+  playClip(name, opts) {
+    if (!this.actx || !this.clips || !this.clips[name]) return false;
+    opts = opts || {};
+    const prev = this._playing[name];
+    if (prev) { try { prev.stop(); } catch (e) {} }
+    const c = this.actx, t = c.currentTime;
+    const src = c.createBufferSource(); src.buffer = this.clips[name];
+    const g = c.createGain(); const vol = opts.gain != null ? opts.gain : 1;
+    g.gain.value = vol; src.connect(g); g.connect(this.master);
+    if (opts.maxDur) {   // cap long clips (the cheer) with a short fade so they don't overrun
+      const d = Math.min(opts.maxDur, this.clips[name].duration);
+      g.gain.setValueAtTime(vol, t + Math.max(0, d - 0.6));
+      g.gain.linearRampToValueAtTime(0.0001, t + d);
+      src.start(t); src.stop(t + d);
+    } else { src.start(t); }
+    this._playing[name] = src;
+    return true;
   }
   // cached white-noise buffer, reused by the crack and crowd sounds
   noiseBuf() {
@@ -698,10 +733,10 @@ class Component extends DCLogic {
   sfx(kind) {
     if (!this.state.soundOn) return;
     this.ensureAudio(); if (!this.actx) return;
-    if (kind === 'click') this.crack(0, 0.8);                     // board/tile tap = bat on ball
+    if (kind === 'click') { if (!this.playClip('hit', { gain: 0.9 })) this.crack(0, 0.8); }       // ball off the bat (sample; synth fallback)
     else if (kind === 'coin') { [880, 1174, 1568].forEach((f, i) => this.tone(f, i * 0.07, 0.12, 'square', 0.13)); }
     else if (kind === 'stamp') { this.tone(150, 0, 0.18, 'sine', 0.4); this.tone(90, 0.02, 0.22, 'sine', 0.3); }
-    else if (kind === 'win') { this.crack(0, 1.3); this.cheer(); }   // home-run smash → the crowd erupts
+    else if (kind === 'win') { if (!this.playClip('cheer', { gain: 1, maxDur: 9 })) this.cheer(); }  // stadium crowd (sample; synth fallback)
   }
 
   // ---------- mode arming ----------
