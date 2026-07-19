@@ -173,7 +173,7 @@
                 </sc-if>
 
                 <sc-if value="{{ t.isWon }}" hint-placeholder-val="{{ false }}">
-                  <div style="position: absolute; inset: 0; background: rgba(14,8,24,.87);
+                  <div style="position: absolute; inset: 0; background: linear-gradient(rgba(14,8,24,.82), rgba(14,8,24,.82)), url('{{ t.stadium }}') center / cover no-repeat #0e0818;
                     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; z-index: 3;">
                     <div style="font-family: 'Anton'; font-size: 16px; color: #f5b40a; border: 2px solid #f5b40a;
                       border-radius: 4px; padding: 1px 8px; transform: rotate(-8deg); letter-spacing: 2px;">WON</div>
@@ -382,7 +382,7 @@
   <!-- ===== WIN TAKEOVER ===== -->
   <sc-if value="{{ overlayTeam }}" hint-placeholder-val="{{ false }}">
     <div style="position: fixed; left: 0; right: 0; bottom: 0; top: calc(100vw / 3.365 + 3px); z-index: 60; overflow: hidden;
-      background: url('./photos/aerial-bw.jpg') center 70% / cover no-repeat #0c0913;
+      background: url('{{ overlayTeam.stadium }}') center 60% / cover no-repeat, url('./photos/aerial-bw.jpg') center 70% / cover no-repeat #0c0913;
       display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px;">
       <div style="position: absolute; inset: 0; background: {{ overlayTeam.color }}; opacity: .55; mix-blend-mode: multiply;"></div>
       <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12,6,24,.4), rgba(12,6,24,.7));"></div>
@@ -518,6 +518,7 @@ class Component extends DCLogic {
   };
 
   logoUrl(abbr) { return './logos/' + abbr + '.svg'; }
+  stadiumUrl(abbr) { return './photos/stadiums/' + abbr + '.jpg'; }
 
   secondary(abbr) {
     const S = {
@@ -822,7 +823,7 @@ class Component extends DCLogic {
   // ---------- render ----------
   renderVals() {
     const s = this.state;
-    const withLogo = (t) => t ? { ...t, logo: this.logoUrl(t.abbr) } : t;
+    const withLogo = (t) => t ? { ...t, logo: this.logoUrl(t.abbr), stadium: this.stadiumUrl(t.abbr) } : t;
     const mapT = (t) => ({ ...withLogo(t), isWon: t.status === 'won',
       border: (s.queue.indexOf(t.id) !== -1 || s.liveBids[t.id] != null) ? '#f5b40a' : t.color,
       hasBid: s.liveBids[t.id] != null, bidText: '$' + (s.liveBids[t.id] || 0),
