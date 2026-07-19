@@ -671,7 +671,7 @@ class Component extends DCLogic {
   // Set FIREBASE_DB once the Firebase Realtime Database exists (or pass ?fb=<dburl> to test).
   syncCfg() {
     if (this._sync !== undefined) return this._sync;
-    const FIREBASE_DB = 'https://PACKMAMA_DB_PLACEHOLDER.firebaseio.com';
+    const FIREBASE_DB = 'https://packmamawhatnot-default-rtdb.firebaseio.com';
     const q = new URLSearchParams(location.search);
     const room = q.get('room');
     let db = (q.get('fb') || FIREBASE_DB).replace(/\/+$/, '');
@@ -1062,6 +1062,7 @@ class Component extends DCLogic {
     this.setState(s => ({ teams: s.teams.map(t => ({ ...t, status: 'available', winner: null })), wins: [],
       overlay: null, mode: null, spStage: null, spFirstId: null, queue: [], detail: null, chooser: null,
       saleFocus: null, givvyOpen: false, ripsOpen: false, liveBids: {} }));
+    setTimeout(() => this.pushSync(), 0);   // mirror the clear to the room so every display clears together
   }
   componentWillUnmount() {
     if (this.givvyTimer) clearInterval(this.givvyTimer);
