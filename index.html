@@ -57,32 +57,32 @@
     position: relative; z-index: 5; border-bottom: 1px solid rgba(158,94,255,.35);">
     <button onClick="{{ armSP }}" style="cursor: pointer; flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden;
       border: 2px solid {{ spBorder }}; color: {{ spColor }};
-      font-family: 'Anton'; font-size: 12px; padding: 11px 2px; border-radius: 9px;
+      font-family: 'Anton'; font-size: 15px; padding: 10px 2px; border-radius: 9px;
       background: {{ spBg }}; transition: filter .15s ease;" style-hover="filter: brightness(1.12);">
       STASH·PASS
     </button>
     <button onClick="{{ armSee2 }}" style="cursor: pointer; flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden;
       border: 2px solid {{ see2Border }}; color: {{ see2Color }};
-      font-family: 'Anton'; font-size: 12px; padding: 11px 2px; border-radius: 9px;
+      font-family: 'Anton'; font-size: 15px; padding: 10px 2px; border-radius: 9px;
       background: {{ see2Bg }}; transition: filter .15s ease;" style-hover="filter: brightness(1.12);">
       SEE 2·PICK 1
     </button>
     <button onClick="{{ armSee3 }}" style="cursor: pointer; flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden;
       border: 2px solid {{ see3Border }}; color: {{ see3Color }};
-      font-family: 'Anton'; font-size: 12px; padding: 11px 2px; border-radius: 9px;
+      font-family: 'Anton'; font-size: 15px; padding: 10px 2px; border-radius: 9px;
       background: {{ see3Bg }}; transition: filter .15s ease;" style-hover="filter: brightness(1.12);">
       SEE 3·PICK 1
     </button>
     <button onClick="{{ armHB }}" style="cursor: pointer; flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden;
       border: 2px solid {{ hbBorder }}; color: {{ hbColor }};
-      font-family: 'Anton'; font-size: 12px; padding: 11px 2px; border-radius: 9px;
+      font-family: 'Anton'; font-size: 15px; padding: 10px 2px; border-radius: 9px;
       background: {{ hbBg }}; transition: filter .15s ease;" style-hover="filter: brightness(1.12);">
       HIGH BID
     </button>
 
     <!-- board count -->
     <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px;">
-      <span style="font-family: 'Anton'; font-size: 14px; line-height: 1; color: #fff; background: #120a20;
+      <span style="font-family: 'Anton'; font-size: 16px; line-height: 1; color: #fff; background: #120a20;
         padding: 5px 7px; border-radius: 7px; border: 2px solid #f5b40a; white-space: nowrap;">{{ remaining }}/30</span>
       <div style="height: 4px; width: 52px; border-radius: 3px; background: #120a20; overflow: hidden; border: 1px solid rgba(158,94,255,.4);">
         <div style="height: 100%; width: {{ pct }}%; background: linear-gradient(90deg,#7a2fe0,#f5b40a); transition: width .5s ease;"></div>
@@ -91,22 +91,22 @@
 
     <!-- running total -->
     <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px;">
-      <span style="font-family: 'Anton'; font-size: 14px; line-height: 1; color: #f5b40a; background: #120a20;
+      <span style="font-family: 'Anton'; font-size: 16px; line-height: 1; color: #f5b40a; background: #120a20;
         padding: 5px 7px; border-radius: 7px; border: 2px solid #f5b40a; white-space: nowrap;">{{ totalText }}</span>
-      <span style="font-family: 'Anton'; font-size: 7px; letter-spacing: 2px; color: #cbb8ef;">TOTAL</span>
+      <span style="font-family: 'Anton'; font-size: 9px; letter-spacing: 2px; color: #cbb8ef;">TOTAL</span>
     </div>
 
     <button onClick="{{ openGivvy }}" style="cursor: pointer; border: 2px solid #f5b40a; background: rgba(245,180,10,.12);
-      color: #f5b40a; font-family: 'Anton'; font-size: 11px; padding: 0 8px; height: 42px; white-space: nowrap;
+      color: #f5b40a; font-family: 'Anton'; font-size: 13px; padding: 0 8px; height: 42px; white-space: nowrap;
       border-radius: 9px; flex: 0 0 auto;" style-hover="background: rgba(245,180,10,.25);">GIVVY</button>
     <button onClick="{{ openRips }}" style="cursor: pointer; border: 1px solid rgba(158,94,255,.5); background: rgba(30,18,52,.85);
-      color: #f3edff; font-family: 'Anton'; font-size: 11px; padding: 0 8px; height: 42px; white-space: nowrap;
+      color: #f3edff; font-family: 'Anton'; font-size: 13px; padding: 0 8px; height: 42px; white-space: nowrap;
       border-radius: 9px; flex: 0 0 auto;">WINS {{ winCount }}</button>
     <button onClick="{{ toggleSound }}" style="cursor: pointer; border: 1px solid rgba(158,94,255,.5); background: rgba(30,18,52,.85);
       color: #f3edff; font-size: 15px; width: 38px; height: 42px; border-radius: 9px; display: flex;
       align-items: center; justify-content: center; flex: 0 0 auto;">{{ soundIcon }}</button>
     <button onClick="{{ resetBoard }}" style="cursor: pointer; border: 1px solid rgba(158,94,255,.5); background: rgba(30,18,52,.85);
-      color: #cbb8ef; font-family: 'Oswald'; font-weight: 600; font-size: 10px; letter-spacing: .5px;
+      color: #cbb8ef; font-family: 'Oswald'; font-weight: 600; font-size: 12px; letter-spacing: .5px;
       padding: 0 7px; height: 42px; border-radius: 9px; flex: 0 0 auto;"
       style-hover="border-color:#f5b40a; color:#f5b40a;">RESET</button>
   </div>
@@ -116,7 +116,7 @@
     <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 10px;
       padding: 8px 12px; position: relative; z-index: 5; background: rgba(122,47,224,.28);
       border-bottom: 1px solid rgba(158,94,255,.4);">
-      <span style="font-family: 'Anton'; font-size: 14px; letter-spacing: 1px; color: #f5b40a;">{{ instruction }}</span>
+      <span style="font-family: 'Anton'; font-size: 17px; letter-spacing: 1px; color: #f5b40a;">{{ instruction }}</span>
       <sc-for list="{{ queueTeams }}" as="q" hint-placeholder-count="0">
         <span style="width: 30px; height: 30px; border-radius: 50%; background: #fff; display: inline-flex;
           align-items: center; justify-content: center; padding: 3px; border: 2px solid #f5b40a;">
@@ -130,15 +130,15 @@
     background: #16092b; border-bottom: 2px solid #f5b40a; overflow: hidden;">
     <div style="flex: 0 0 auto; height: 100%; display: flex; align-items: center; gap: 7px;
       padding: 0 14px; background: #f5b40a; color: #1c1204; font-family: 'Anton'; letter-spacing: .5px;
-      font-size: 13px; z-index: 2;">
-      <span style="width: 8px; height: 8px; border-radius: 50%; background: #b5232d;"></span>
+      font-size: 16px; z-index: 2;">
+      <span style="width: 9px; height: 9px; border-radius: 50%; background: #b5232d;"></span>
       LIVE
     </div>
     <div style="flex: 1 1 auto; overflow: hidden;">
       <div style="display: inline-flex; white-space: nowrap; animation: tickerScroll 48s linear infinite; will-change: transform;">
         <sc-for list="{{ tickerLoop }}" as="ti" hint-placeholder-count="8">
           <span style="display: inline-flex; align-items: center; font-family: 'Anton';
-            font-size: 14px; letter-spacing: 1px; padding: 0 22px; color: {{ ti.color }};">
+            font-size: 17px; letter-spacing: 1px; padding: 0 22px; color: {{ ti.color }};">
             <span style="opacity: .6; color: #9e5eff; margin-right: 22px;">👑</span>{{ ti.text }}
           </span>
         </sc-for>
@@ -154,7 +154,8 @@
       <sc-for list="{{ divisions }}" as="dv" hint-placeholder-count="6">
         <div style="flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: 3px;">
           <div style="flex: 0 0 auto; display: flex; align-items: center; gap: 8px; line-height: 1;">
-            <span style="font-family: 'Anton'; font-size: 11px; letter-spacing: 3px; color: {{ dv.color }};">{{ dv.label }}</span>
+            <span style="font-family: 'Anton'; font-size: 15px; letter-spacing: 3px; color: {{ dv.color }};
+              text-shadow: 0 1px 4px rgba(0,0,0,.95);">{{ dv.label }}</span>
             <span style="flex: 1; height: 1px; background: linear-gradient(90deg, {{ dv.color }}, transparent);"></span>
           </div>
           <div style="flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: 1fr; gap: 8px;">
@@ -175,10 +176,12 @@
                 <sc-if value="{{ t.isWon }}" hint-placeholder-val="{{ false }}">
                   <div style="position: absolute; inset: 0; background: linear-gradient(rgba(14,8,24,.82), rgba(14,8,24,.82)), url('{{ t.stadium }}') center / cover no-repeat #0e0818;
                     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; z-index: 3;">
-                    <div style="font-family: 'Anton'; font-size: 16px; color: #f5b40a; border: 2px solid #f5b40a;
-                      border-radius: 4px; padding: 1px 8px; transform: rotate(-8deg); letter-spacing: 2px;">WON</div>
-                    <div style="font-family: 'Oswald'; font-weight: 600; font-size: 10px; color: #cbb8ef;
-                      text-align: center; max-width: 92%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ t.winner }}</div>
+                    <div style="font-family: 'Anton'; font-size: 19px; color: #f5b40a; border: 2px solid #f5b40a;
+                      border-radius: 4px; padding: 1px 9px; transform: rotate(-8deg); letter-spacing: 2px;
+                      text-shadow: 0 1px 4px rgba(0,0,0,.9); box-shadow: 0 2px 8px rgba(0,0,0,.5);">WON</div>
+                    <div style="font-family: 'Oswald'; font-weight: 700; font-size: 15px; color: #fff; margin-top: 2px;
+                      text-shadow: 0 1px 4px rgba(0,0,0,.95); text-align: center; max-width: 96%; line-height: 1.05;
+                      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ t.winner }}</div>
                   </div>
                 </sc-if>
               </div>
@@ -580,8 +583,18 @@ class Component extends DCLogic {
     } catch (e) {}
   }
   clearPersist() { try { localStorage.removeItem('packMamaBoard'); } catch (e) {} }
+  seedDemo() {
+    const wins = [['KC','royalsroom'], ['PIT','buccos_mike'], ['SEA','pnw_pulls'],
+      ['ATL','chopnation'], ['NYM','amazin_ave'], ['LAD','bluecrew_cards']];
+    this.setState(s => ({
+      teams: s.teams.map(t => { const w = wins.find(x => x[0] === t.id); return w ? { ...t, status: 'won', winner: w[1] } : t; }),
+      wins: wins.map(([id, winner]) => { const t = s.teams.find(x => x.id === id); return { id, abbr: id, color: t.color, team: t.name, winner, price: 0 }; }),
+    }));
+  }
   componentDidMount() {
     try {
+      // ?demo=1 → standalone preview (seed some winners, don't touch saved state)
+      if (new URLSearchParams(location.search).get('demo')) { this.seedDemo(); return; }
       const raw = localStorage.getItem('packMamaBoard');
       if (!raw) return;
       const d = JSON.parse(raw);
@@ -598,33 +611,97 @@ class Component extends DCLogic {
     } catch (e) {}
   }
 
-  // ---------- audio ----------
+  // ---------- audio (fully synthesized — no external files) ----------
   ensureAudio() {
-    if (!this.actx) { try { this.actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (!this.actx) {
+      try {
+        this.actx = new (window.AudioContext || window.webkitAudioContext)();
+        this.master = this.actx.createGain();
+        this.master.gain.value = 0.9;
+        this.master.connect(this.actx.destination);
+      } catch (e) {}
+    }
     if (this.actx && this.actx.state === 'suspended') this.actx.resume();
+  }
+  // cached white-noise buffer, reused by the crack and crowd sounds
+  noiseBuf() {
+    if (this._noise) return this._noise;
+    const c = this.actx, len = Math.floor(c.sampleRate * 2), b = c.createBuffer(1, len, c.sampleRate);
+    const d = b.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    this._noise = b; return b;
   }
   tone(freq, start, dur, type, gain) {
     if (!this.actx) return;
     const c = this.actx, o = c.createOscillator(), g = c.createGain();
     o.type = type || 'triangle'; o.frequency.value = freq;
-    o.connect(g); g.connect(c.destination);
+    o.connect(g); g.connect(this.master);
     const t = c.currentTime + start;
     g.gain.setValueAtTime(0.0001, t);
     g.gain.exponentialRampToValueAtTime(gain || 0.2, t + 0.012);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     o.start(t); o.stop(t + dur + 0.03);
   }
+  // the sharp CRACK of a bat squaring up a ball: noise transient + woody knock
+  crack(at, power) {
+    if (!this.actx) return;
+    const c = this.actx, t = c.currentTime + (at || 0), p = power || 1;
+    const src = c.createBufferSource(); src.buffer = this.noiseBuf();
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2300 - 500 * (p - 1); bp.Q.value = 0.9;
+    const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 700;
+    const g = c.createGain();
+    src.connect(bp); bp.connect(hp); hp.connect(g); g.connect(this.master);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.55 * p, t + 0.002);   // near-instant attack
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);      // fast decay
+    src.start(t); src.stop(t + 0.12);
+    const o = c.createOscillator(), og = c.createGain();          // woody body knock
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(210 * p, t);
+    o.frequency.exponentialRampToValueAtTime(120, t + 0.06);
+    o.connect(og); og.connect(this.master);
+    og.gain.setValueAtTime(0.0001, t);
+    og.gain.exponentialRampToValueAtTime(0.3 * p, t + 0.004);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.1);
+    o.start(t); o.stop(t + 0.14);
+  }
+  // stadium roar: broadband crowd noise that swells, brightens and falls, with cheer texture
+  cheer() {
+    if (!this.actx) return;
+    const c = this.actx, t = c.currentTime, dur = 2.4;
+    const src = c.createBufferSource(); src.buffer = this.noiseBuf(); src.loop = true;
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 0.4;
+    bp.frequency.setValueAtTime(700, t);
+    bp.frequency.linearRampToValueAtTime(1700, t + 0.6);           // brighten as the crowd rises
+    bp.frequency.setValueAtTime(1700, t + dur - 0.8);
+    bp.frequency.linearRampToValueAtTime(900, t + dur);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(0.34, t + 0.35);                // swell up
+    g.gain.setValueAtTime(0.34, t + dur - 0.9);
+    g.gain.linearRampToValueAtTime(0.0001, t + dur);               // fall away
+    const lfo = c.createOscillator(), lg = c.createGain();          // crowd "waa" tremolo
+    lfo.type = 'sine'; lfo.frequency.value = 5.5; lg.gain.value = 0.08;
+    lfo.connect(lg); lg.connect(g.gain);
+    src.connect(bp); bp.connect(g); g.connect(this.master);
+    src.start(t); src.stop(t + dur + 0.1); lfo.start(t); lfo.stop(t + dur + 0.1);
+    [[0.15, 2400], [0.5, 3000], [0.95, 2600], [1.4, 2800]].forEach(([d, f]) => {   // bright cheer chirps on top
+      const o = c.createOscillator(), og = c.createGain();
+      o.type = 'sine'; o.frequency.setValueAtTime(f, t + d); o.frequency.linearRampToValueAtTime(f * 1.15, t + d + 0.12);
+      o.connect(og); og.connect(this.master);
+      og.gain.setValueAtTime(0.0001, t + d);
+      og.gain.exponentialRampToValueAtTime(0.06, t + d + 0.03);
+      og.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.22);
+      o.start(t + d); o.stop(t + d + 0.3);
+    });
+  }
   sfx(kind) {
     if (!this.state.soundOn) return;
     this.ensureAudio(); if (!this.actx) return;
-    if (kind === 'click') this.tone(620, 0, 0.07, 'square', 0.12);
+    if (kind === 'click') this.crack(0, 0.8);                     // board/tile tap = bat on ball
     else if (kind === 'coin') { [880, 1174, 1568].forEach((f, i) => this.tone(f, i * 0.07, 0.12, 'square', 0.13)); }
     else if (kind === 'stamp') { this.tone(150, 0, 0.18, 'sine', 0.4); this.tone(90, 0.02, 0.22, 'sine', 0.3); }
-    else if (kind === 'win') {
-      const seq = [523, 659, 784, 1047, 1319];
-      seq.forEach((f, i) => this.tone(f, i * 0.09, 0.28, 'triangle', 0.18));
-      this.tone(784, 0.5, 0.5, 'sawtooth', 0.12); this.tone(1047, 0.5, 0.5, 'triangle', 0.14);
-    }
+    else if (kind === 'win') { this.crack(0, 1.3); this.cheer(); }   // home-run smash → the crowd erupts
   }
 
   // ---------- mode arming ----------
