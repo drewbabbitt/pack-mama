@@ -38,6 +38,9 @@
     100% { transform: rotate(var(--a)) translateY(var(--d)) scale(.35); opacity: 0; } }
 
   /* ===== STREAM BROADCAST LAYOUT (?view=stream): header · camera gap · grid · footer ===== */
+  /* page root must be transparent too — the runtime paints html/body #0c0913, which otherwise
+     fills the camera gap and hides the cam source behind the overlay in OBS */
+  html, body { background: transparent; }
   .pm-app[data-view="stream"] { background: transparent !important; }
   .pm-app[data-view="stream"] .pm-dimmer,
   .pm-app[data-view="stream"] .pm-banner,
