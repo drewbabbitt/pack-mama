@@ -9,17 +9,20 @@
 <meta name="apple-mobile-web-app-title" content="Pack Mama">
 <link rel="apple-touch-icon" href="./icon.png">
 <title>Pack Mama — Live Break Board</title>
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="./react.production.min.js"></script>
+<script src="./react-dom.production.min.js"></script>
 <script src="./support.js"></script>
 </head>
 <body>
 <x-dc>
 <helmet>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Pacifico&family=Barlow+Condensed:wght@500;600;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  /* self-hosted display fonts — no CDN, renders identically on an offline file:// OBS box.
+     @font-face is a CSS subresource, exempt from the file:// fetch/opaque-origin block. */
+  @font-face { font-family: 'AntonLocal'; src: url('./anton-latin.woff2') format('woff2');
+    font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'OswaldLocal'; src: url('./oswald-latin-var.woff2') format('woff2');
+    font-weight: 300 700; font-display: swap; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: #0c0913; overflow: hidden;
     -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none;
@@ -33,11 +36,13 @@
   @keyframes rise { 0% { transform: translateY(30px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
   @keyframes logoPop { 0% { transform: scale(0) rotate(-25deg); opacity: 0; } 55% { transform: scale(1.15) rotate(5deg); opacity: 1; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
   @keyframes confettiFall { 0% { transform: translateY(-20vh) rotate(0); opacity: 1; } 100% { transform: translateY(120vh) rotate(720deg); opacity: 1; } }
-  @keyframes fwShoot { 0% { transform: rotate(var(--a)) translateY(0) scale(1); opacity: 0; }
-    8% { opacity: 1; } 75% { opacity: .9; }
-    100% { transform: rotate(var(--a)) translateY(var(--d)) scale(.35); opacity: 0; } }
+  /* shared idle blink — one definition, opacity only */
+  @keyframes pmBlink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
 
-  /* ===== STREAM BROADCAST LAYOUT (?view=stream): header · camera gap · grid · footer ===== */
+  /* ===== STREAM BROADCAST LAYOUT (?view=stream): marquee header · camera gap · open strip · grid · footer ===== */
+  /* page root must be transparent too — the runtime paints html/body #0c0913, which otherwise
+     fills the camera gap and hides the cam source behind the overlay in OBS */
+  html, body { background: transparent; }
   .pm-app[data-view="stream"] { background: transparent !important; }
   .pm-app[data-view="stream"] .pm-dimmer,
   .pm-app[data-view="stream"] .pm-banner,
@@ -46,46 +51,116 @@
   .pm-app[data-view="stream"] .pm-ticker { display: none !important; }
   .pm-app[data-view="stream"] .pm-gridwrap { flex: 0 0 720px; padding: 12px 14px 14px;
     background: linear-gradient(180deg, rgba(12,7,22,.98), rgba(9,5,16,1)); border-top: 3px solid #f5b40a; }
-  .pm-cameragap { flex: 1 1 auto; min-height: 0; }   /* transparent — the camera source shows through */
+  .pm-cameragap { flex: 1 1 auto; min-height: 0; position: relative; }  /* transparent — the cam shows through; brackets anchor to its corners */
 
-  /* real Pack Mama banner as the stream header */
-  .pm-sbanner { flex: 0 0 auto; width: 100%; aspect-ratio: 1800 / 535; position: relative; z-index: 6;
-    background: url('./photos/packmama-banner.jpg') center / 100% 100% no-repeat #0c0913;
+  /* ===== MARQUEE BUG — opaque broadcast score-bug header (replaces banner + infobar) ===== */
+  .pm-mbug { flex: 0 0 auto; width: 100%; height: 263px; position: relative; z-index: 6; overflow: clip;
+    display: flex; flex-direction: column;
+    background: linear-gradient(180deg, #16092b, #0e0819);
     border-bottom: 3px solid #f5b40a; box-shadow: 0 8px 26px rgba(0,0,0,.7); }
-  .pm-sinfobar { flex: 0 0 auto; height: 78px; display: flex; align-items: center; gap: 16px; padding: 0 24px;
-    position: relative; z-index: 6; background: linear-gradient(180deg, #16092b, #120a20); border-bottom: 2px solid #f5b40a; }
-  .pm-sheader-live { display: flex; align-items: center; gap: 9px; background: #7a2fe0; border-radius: 999px;
-    padding: 8px 20px; font-family: 'Anton'; font-size: 26px; letter-spacing: 3px; color: #fff; flex: 0 0 auto; }
-  .pm-sheader-live .dot { width: 14px; height: 14px; border-radius: 50%; background: #ff3b5c; box-shadow: 0 0 12px #ff3b5c; animation: blink 1.4s ease-in-out infinite; }
-  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
-  .pm-sheader-tag { font-family: 'Anton'; font-size: 24px; letter-spacing: 2px; color: #cbb8ef; }
-  .pm-sheader-spots { margin-left: auto; font-family: 'Anton'; font-size: 42px; color: #f5b40a; line-height: 1;
-    text-shadow: 0 2px 10px rgba(0,0,0,.6); flex: 0 0 auto; }
-  .pm-sheader-spots small { font-size: 22px; color: #cbb8ef; letter-spacing: 1px; }
-  .pm-sctrls { display: flex; gap: 8px; flex: 0 0 auto; }
-  .pm-sctrls button { cursor: pointer; font-family: 'Anton'; font-size: 17px; letter-spacing: 1px;
-    padding: 11px 12px; border-radius: 10px; white-space: nowrap; transition: filter .15s ease; }
+  .pm-mbug-brand { height: 128px; padding: 0 30px; display: flex; align-items: center; justify-content: space-between; }
+  .pm-mbug-wordmark { display: flex; align-items: center; gap: 16px; min-width: 0; }
+  .pm-mbug-wordmark img { width: 84px; height: 84px; border-radius: 50%; border: 3px solid #f5b40a;
+    box-shadow: 0 0 22px rgba(245,180,10,.45); flex: 0 0 auto; }
+  .pm-mbug-wordmark .txt { font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 62px; line-height: 1;
+    letter-spacing: 3px; color: #f5b40a; text-shadow: 0 3px 0 #2a0f45, 0 0 18px rgba(122,47,224,.5); white-space: nowrap; }
+  .pm-mbug-cap { flex: 0 0 auto; transform: skewX(-12deg); background: rgba(14,8,25,.7); border-top: 3px solid #f5b40a;
+    padding: 8px 18px; }
+  .pm-mbug-cap span { display: inline-block; transform: skewX(12deg); font-family: 'OswaldLocal','Helvetica Neue',sans-serif;
+    font-weight: 700; font-size: 22px; letter-spacing: 2px; color: #cbb8ef; }
+  .pm-mbug-bug { height: 132px; padding: 0 30px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+  .pm-mbug-left { display: flex; align-items: center; gap: 18px; min-width: 0; }
+  .pm-mbug-live { flex: 0 0 auto; transform: skewX(-12deg); height: 46px; padding: 0 22px; border-radius: 8px;
+    background: linear-gradient(90deg, #7a2fe0, #9e5eff); border-top: 3px solid #f5b40a; display: inline-flex; align-items: center; }
+  .pm-mbug-live > span { transform: skewX(12deg); display: inline-flex; align-items: center; gap: 10px;
+    font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 26px; letter-spacing: 3px; color: #fff; line-height: 1; }
+  .pm-mbug-live .dot { width: 13px; height: 13px; border-radius: 50%; background: #ff3b5c; box-shadow: 0 0 12px #ff3b5c;
+    animation: pmBlink 1.4s ease-in-out infinite; flex: 0 0 auto; }
+  .pm-mbug-title { min-width: 0; }
+  .pm-mbug-title .t1 { font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 38px; letter-spacing: 1px; color: #f3edff;
+    line-height: 1.02; max-width: 560px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pm-mbug-title .t2 { margin-top: 5px; font-family: 'OswaldLocal','Helvetica Neue',sans-serif; font-weight: 600; font-size: 22px;
+    letter-spacing: 2px; color: #cbb8ef; max-width: 560px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pm-mbug-spots { flex: 0 0 auto; transform: skewX(-12deg); transform-origin: center right; min-width: 232px; height: 116px;
+    padding: 10px 26px; border-radius: 8px; background: linear-gradient(180deg, #170d29, #0e0819); border-top: 3px solid #f5b40a;
+    box-shadow: inset 0 0 0 1px rgba(158,94,255,.35); display: flex; align-items: center; justify-content: flex-end; will-change: transform; }
+  .pm-mbug-spots > div { transform: skewX(12deg); text-align: right; line-height: 1; }
+  .pm-mbug-spots .n { font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 64px; color: #f5b40a; text-shadow: 0 2px 10px rgba(0,0,0,.6); }
+  .pm-mbug-spots .d { font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 34px; color: #cbb8ef; }
+  .pm-mbug-spots .lbl { margin-top: 2px; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 22px; letter-spacing: 2px; color: #cbb8ef; }
 
-  .pm-sfooter { flex: 0 0 auto; height: 112px; display: flex; align-items: center; position: relative; z-index: 6;
-    overflow: hidden; background: linear-gradient(180deg, #120a20, #16092b); border-top: 3px solid #f5b40a; }
-  .pm-sfooter-live { flex: 0 0 auto; height: 100%; display: flex; align-items: center; gap: 11px; padding: 0 26px;
-    background: #f5b40a; color: #1c1204; font-family: 'Anton'; font-size: 32px; letter-spacing: 1px; }
-  .pm-sfooter-live .dot { width: 14px; height: 14px; border-radius: 50%; background: #b5232d; }
-  .pm-sfooter-scroll { flex: 1 1 auto; overflow: hidden; }
+  /* ===== GOLD CORNER BRACKETS — frame the transparent camera window (anchor to the gap's corners) ===== */
+  .pm-cbracket { position: absolute; width: 120px; height: 120px; border: 7px solid #f5b40a; z-index: 5; opacity: .9;
+    box-shadow: 0 0 16px rgba(245,180,10,.35); pointer-events: none; animation: cnrBreathe 4.5s ease-in-out infinite; }
+  .pm-cbracket.tl { top: 22px; left: 26px; border-bottom: none; border-right: none; border-radius: 18px 0 0 0; }
+  .pm-cbracket.tr { top: 22px; right: 26px; border-bottom: none; border-left: none; border-radius: 0 18px 0 0; }
+  .pm-cbracket.bl { bottom: 22px; left: 26px; border-top: none; border-right: none; border-radius: 0 0 0 18px; }
+  .pm-cbracket.br { bottom: 22px; right: 26px; border-top: none; border-left: none; border-radius: 0 0 18px 0; }
+  @keyframes cnrBreathe { 0%,100% { opacity: .9; } 50% { opacity: .55; } }
+
+  /* ===== OPEN-TEAMS STRIP — persistent at-a-glance "who's still open" (above the grid, clears the chat line) ===== */
+  .pm-openstrip { flex: 0 0 auto; height: 54px; display: flex; align-items: center; gap: 10px; padding: 0 16px; position: relative; z-index: 6;
+    overflow: hidden; background: linear-gradient(180deg, rgba(22,11,42,.96), rgba(15,7,24,.96)); border-top: 3px solid #f5b40a; }
+  .pm-openstrip .cap { flex: 0 0 auto; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 22px; letter-spacing: 2px;
+    color: #1c1204; background: #f5b40a; padding: 5px 14px; border-radius: 7px; }
+  .pm-openstrip .pills { flex: 1 1 auto; display: flex; align-items: center; gap: 9px; overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 44px), transparent 100%);
+            mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 44px), transparent 100%); }
+  .pm-openstrip .pill { flex: 0 0 auto; display: inline-flex; align-items: baseline; gap: 7px; padding: 4px 13px; border-radius: 8px;
+    background: rgba(12,7,22,.9); border: 1px solid rgba(158,94,255,.4); font-family: 'AntonLocal','Arial Black',sans-serif; }
+  .pm-openstrip .pill .dl { font-size: 20px; letter-spacing: 1px; }
+  .pm-openstrip .pill .ct { font-size: 26px; color: #f5b40a; }
+
+  /* ===== DIAMOND RIBBON — opaque broadcast footer (replaces the old .pm-sfooter) ===== */
+  .pm-sfooter { flex: 0 0 auto; height: 120px; display: flex; align-items: stretch; position: relative; z-index: 6; overflow: hidden;
+    background: linear-gradient(180deg, #160b2a, #0f0718); border-top: 4px solid #f5b40a;
+    animation: footerRise .5s cubic-bezier(.2,.9,.25,1) both; }
+  .pm-scap { flex: 0 0 236px; display: flex; align-items: center; gap: 12px; padding: 0 30px 0 26px; z-index: 2; color: #1c1204;
+    background: linear-gradient(135deg, #ffd257, #f5b40a); clip-path: polygon(0 0, 100% 0, calc(100% - 26px) 100%, 0 100%); }
+  .pm-scap .cap-mark { width: 26px; height: 26px; flex: 0 0 auto; background: #1c1204; transform: rotate(45deg); border-radius: 4px; }
+  .pm-scap .cap-txt { font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 30px; letter-spacing: 1px; line-height: 1; }
+  .pm-scap .live-dot { width: 13px; height: 13px; border-radius: 50%; background: #b5232d; flex: 0 0 auto; animation: pmBlink 1.4s ease-in-out infinite; }
+  .pm-sfooter-scroll { flex: 1 1 auto; overflow: hidden; display: flex; align-items: center;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 56px, #000 calc(100% - 56px), transparent 100%);
+            mask-image: linear-gradient(90deg, transparent 0, #000 56px, #000 calc(100% - 56px), transparent 100%); }
   .pm-sfooter-track { display: inline-flex; white-space: nowrap; animation: tickerScroll 42s linear infinite; will-change: transform; }
-  .pm-sfooter-track > span { display: inline-flex; align-items: center; font-family: 'Anton'; font-size: 36px; letter-spacing: 1px; padding: 0 34px; }
-  .pm-sfooter-track .crown { opacity: .6; color: #9e5eff; margin-right: 26px; }
-  .pm-srip { position: absolute; inset: 0; z-index: 7; display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(90deg, #7a2fe0, #f5b40a, #7a2fe0); background-size: 200% 100%; animation: slideBg 2.2s linear infinite; }
-  .pm-srip span { font-family: 'Anton'; font-size: 54px; letter-spacing: 2px; color: #1c1204; text-transform: uppercase; text-shadow: 0 2px 6px rgba(255,255,255,.35); }
-  @keyframes slideBg { to { background-position: 200% 0; } }
+  .pm-sfooter-track > span { display: inline-flex; align-items: center; font-family: 'AntonLocal','Arial Black',sans-serif;
+    font-size: 40px; letter-spacing: 1px; padding: 0 40px; }
+  .pm-sfooter-track .sep { width: 16px; height: 16px; background: #9e5eff; opacity: .5; transform: rotate(45deg); border-radius: 3px; margin-right: 22px; flex: 0 0 auto; }
+  .pm-chip { font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 19px; letter-spacing: 1px; padding: 3px 12px;
+    border-radius: 6px; margin-right: 16px; line-height: 1; }
+  .pm-srip { position: absolute; inset: 0; z-index: 7; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 4px;
+    background: linear-gradient(180deg, #ffd257 0%, #f5b40a 55%, #e39a00 100%); border-top: 4px solid #1c1204;
+    animation: ripIn .38s cubic-bezier(.2,.9,.25,1) both; }
+  .pm-srip .rip-txt { font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 52px; letter-spacing: 2px; text-transform: uppercase;
+    color: #1c1204; text-shadow: 0 1px 0 rgba(255,255,255,.35); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 96%; }
+  .pm-srip::after { content: ""; position: absolute; top: 8px; bottom: 8px; left: 0; width: 160px; pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
+    transform: skewX(-18deg) translateX(-280px); animation: ripSheen 4s ease-in-out infinite; }
+  @keyframes footerRise { from { transform: translateY(46px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @keyframes ripIn { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @keyframes ripSheen { 0% { transform: skewX(-18deg) translateX(-280px); } 100% { transform: skewX(-18deg) translateX(1200px); } }
+
+  /* ===== STADIUM SLAM — win takeover motion (transform/opacity only; static shadows) ===== */
+  @keyframes burstPop { 0% { transform: translate(-50%,-50%) scale(.2); opacity: 0; } 28% { opacity: .9; }
+    100% { transform: translate(-50%,-50%) scale(1.7); opacity: 0; } }
+  @keyframes stampSlam { 0% { transform: rotate(-4deg) scale(2.5); opacity: 0; } 62% { transform: rotate(-4deg) scale(.9); opacity: 1; }
+    100% { transform: rotate(-4deg) scale(1); opacity: 1; } }
+  @keyframes hitShake { 0%,100% { transform: translate(0,0); } 20% { transform: translate(-7px,4px); }
+    40% { transform: translate(6px,-3px); } 60% { transform: translate(-4px,3px); } 80% { transform: translate(3px,-2px); } }
+  /* inset:0 so confetti/burst cover the full frame, but the reveal+payoff stack is TOP-ANCHORED
+     into the Whatnot safe band (host 154 → chat 1344) via padding-top, so the auction price + LOCKED
+     never fall under the y1344 chat/buy line in the full-height 1920 stream takeover (win-takeover MUST_FIX #2). */
+  .pm-slam-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
+    justify-content: flex-start; padding: 300px 16px 16px; }
+  .pm-slam-inner.is-slam { animation: hitShake .35s ease .25s 1 both; }
   /* full-screen win reveal on stream (no banner to clear) */
   .pm-app[data-view="stream"] .pm-takeover { top: 0 !important; }
 </style>
 </helmet>
 
 <div class="pm-app" data-view="{{ viewMode }}" style="display: flex; flex-direction: column; color: #f3edff;
-  font-family: 'Oswald', sans-serif; overflow: hidden; position: relative;
+  font-family: 'OswaldLocal','Helvetica Neue',sans-serif, sans-serif; overflow: hidden; position: relative;
   background: url('./photos/stands.jpg') center 30% / cover no-repeat #0c0913;">
 
   <!-- purple studio dimmer -->
@@ -94,19 +169,44 @@
 
   <!-- ===== STREAM HEADER (real Pack Mama banner) + CAMERA GAP (only in ?view=stream) ===== -->
   <sc-if value="{{ isStream }}" hint-placeholder-val="{{ false }}">
-    <div class="pm-sbanner"></div>
-    <div class="pm-sinfobar">
-      <div class="pm-sheader-live"><span class="dot"></span>LIVE</div>
-      <div class="pm-sheader-tag">MLB BREAKS · LIVE ON WHATNOT</div>
-      <div class="pm-sheader-spots">{{ streamSpots }}<small>/30 SPOTS LEFT</small></div>
-      <div class="pm-sctrls">
-        <button onClick="{{ armSP }}" style="border: 2px solid {{ spBorder }}; color: {{ spColor }}; background: {{ spBg }};" style-hover="filter: brightness(1.12);">STASH·PASS</button>
-        <button onClick="{{ armSee2 }}" style="border: 2px solid {{ see2Border }}; color: {{ see2Color }}; background: {{ see2Bg }};" style-hover="filter: brightness(1.12);">SEE 2</button>
-        <button onClick="{{ armSee3 }}" style="border: 2px solid {{ see3Border }}; color: {{ see3Color }}; background: {{ see3Bg }};" style-hover="filter: brightness(1.12);">SEE 3</button>
-        <button onClick="{{ armHB }}" style="border: 2px solid {{ hbBorder }}; color: {{ hbColor }}; background: {{ hbBg }};" style-hover="filter: brightness(1.12);">HIGH BID</button>
+    <!-- MARQUEE BUG — opaque broadcast score-bug header -->
+    <div class="pm-mbug">
+      <div class="pm-mbug-brand">
+        <div class="pm-mbug-wordmark">
+          <img src="./icon.png" alt="">
+          <span class="txt">PACK MAMA</span>
+        </div>
+        <div class="pm-mbug-cap"><span>LIVE ON WHATNOT</span></div>
+      </div>
+      <div class="pm-mbug-bug">
+        <div class="pm-mbug-left">
+          <div class="pm-mbug-live"><span><span class="dot"></span>{{ streamModeLabel }}</span></div>
+          <div class="pm-mbug-title">
+            <div class="t1">{{ streamTitle }}</div>
+            <div class="t2">{{ streamSubtitle }}</div>
+          </div>
+        </div>
+        <div class="pm-mbug-spots">
+          <div><span class="n">{{ streamSpots }}</span><span class="d">/30</span><div class="lbl">SPOTS LEFT</div></div>
+        </div>
       </div>
     </div>
-    <div class="pm-cameragap"></div>
+
+    <!-- transparent camera window, framed only by 4 gold corner brackets anchored to its corners -->
+    <div class="pm-cameragap">
+      <div class="pm-cbracket tl"></div><div class="pm-cbracket tr"></div>
+      <div class="pm-cbracket bl"></div><div class="pm-cbracket br"></div>
+    </div>
+
+    <!-- persistent OPEN-TEAMS strip (per-division open counts) — sits above the chat line -->
+    <div class="pm-openstrip">
+      <div class="cap">OPEN</div>
+      <div class="pills">
+        <sc-for list="{{ openStrip }}" as="od" hint-placeholder-count="6">
+          <span class="pill"><span class="dl" style="color: {{ od.color }};">{{ od.label }}</span><span class="ct">{{ od.count }}</span></span>
+        </sc-for>
+      </div>
+    </div>
   </sc-if>
 
   <!-- ===== PACK MAMA BANNER (front layer, full art, zero crop) ===== -->
@@ -119,32 +219,32 @@
     position: relative; z-index: 5; border-bottom: 1px solid rgba(158,94,255,.35);">
     <button onClick="{{ armSP }}" style="cursor: pointer; flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden;
       border: 2px solid {{ spBorder }}; color: {{ spColor }};
-      font-family: 'Anton'; font-size: 15px; padding: 10px 2px; border-radius: 9px;
+      font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 15px; padding: 10px 2px; border-radius: 9px;
       background: {{ spBg }}; transition: filter .15s ease;" style-hover="filter: brightness(1.12);">
       STASH·PASS
     </button>
     <button onClick="{{ armSee2 }}" style="cursor: pointer; flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden;
       border: 2px solid {{ see2Border }}; color: {{ see2Color }};
-      font-family: 'Anton'; font-size: 15px; padding: 10px 2px; border-radius: 9px;
+      font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 15px; padding: 10px 2px; border-radius: 9px;
       background: {{ see2Bg }}; transition: filter .15s ease;" style-hover="filter: brightness(1.12);">
       SEE 2·PICK 1
     </button>
     <button onClick="{{ armSee3 }}" style="cursor: pointer; flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden;
       border: 2px solid {{ see3Border }}; color: {{ see3Color }};
-      font-family: 'Anton'; font-size: 15px; padding: 10px 2px; border-radius: 9px;
+      font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 15px; padding: 10px 2px; border-radius: 9px;
       background: {{ see3Bg }}; transition: filter .15s ease;" style-hover="filter: brightness(1.12);">
       SEE 3·PICK 1
     </button>
     <button onClick="{{ armHB }}" style="cursor: pointer; flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden;
       border: 2px solid {{ hbBorder }}; color: {{ hbColor }};
-      font-family: 'Anton'; font-size: 15px; padding: 10px 2px; border-radius: 9px;
+      font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 15px; padding: 10px 2px; border-radius: 9px;
       background: {{ hbBg }}; transition: filter .15s ease;" style-hover="filter: brightness(1.12);">
       HIGH BID
     </button>
 
     <!-- board count -->
     <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px;">
-      <span style="font-family: 'Anton'; font-size: 16px; line-height: 1; color: #fff; background: #120a20;
+      <span style="font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 16px; line-height: 1; color: #fff; background: #120a20;
         padding: 5px 7px; border-radius: 7px; border: 2px solid #f5b40a; white-space: nowrap;">{{ remaining }}/30</span>
       <div style="height: 4px; width: 52px; border-radius: 3px; background: #120a20; overflow: hidden; border: 1px solid rgba(158,94,255,.4);">
         <div style="height: 100%; width: {{ pct }}%; background: linear-gradient(90deg,#7a2fe0,#f5b40a); transition: width .5s ease;"></div>
@@ -153,22 +253,22 @@
 
     <!-- running total -->
     <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px;">
-      <span style="font-family: 'Anton'; font-size: 16px; line-height: 1; color: #f5b40a; background: #120a20;
+      <span style="font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 16px; line-height: 1; color: #f5b40a; background: #120a20;
         padding: 5px 7px; border-radius: 7px; border: 2px solid #f5b40a; white-space: nowrap;">{{ totalText }}</span>
-      <span style="font-family: 'Anton'; font-size: 9px; letter-spacing: 2px; color: #cbb8ef;">TOTAL</span>
+      <span style="font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 9px; letter-spacing: 2px; color: #cbb8ef;">TOTAL</span>
     </div>
 
     <button onClick="{{ openGivvy }}" style="cursor: pointer; border: 2px solid #f5b40a; background: rgba(245,180,10,.12);
-      color: #f5b40a; font-family: 'Anton'; font-size: 13px; padding: 0 8px; height: 42px; white-space: nowrap;
+      color: #f5b40a; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 13px; padding: 0 8px; height: 42px; white-space: nowrap;
       border-radius: 9px; flex: 0 0 auto;" style-hover="background: rgba(245,180,10,.25);">GIVVY</button>
     <button onClick="{{ openRips }}" style="cursor: pointer; border: 1px solid rgba(158,94,255,.5); background: rgba(30,18,52,.85);
-      color: #f3edff; font-family: 'Anton'; font-size: 13px; padding: 0 8px; height: 42px; white-space: nowrap;
+      color: #f3edff; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 13px; padding: 0 8px; height: 42px; white-space: nowrap;
       border-radius: 9px; flex: 0 0 auto;">WINS {{ winCount }}</button>
     <button onClick="{{ toggleSound }}" style="cursor: pointer; border: 1px solid rgba(158,94,255,.5); background: rgba(30,18,52,.85);
       color: #f3edff; font-size: 15px; width: 38px; height: 42px; border-radius: 9px; display: flex;
       align-items: center; justify-content: center; flex: 0 0 auto;">{{ soundIcon }}</button>
     <button onClick="{{ resetBoard }}" style="cursor: pointer; border: 1px solid rgba(158,94,255,.5); background: rgba(30,18,52,.85);
-      color: #cbb8ef; font-family: 'Oswald'; font-weight: 600; font-size: 12px; letter-spacing: .5px;
+      color: #cbb8ef; font-family: 'OswaldLocal','Helvetica Neue',sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .5px;
       padding: 0 7px; height: 42px; border-radius: 9px; flex: 0 0 auto;"
       style-hover="border-color:#f5b40a; color:#f5b40a;">RESET</button>
   </div>
@@ -178,7 +278,7 @@
     <div class="pm-instruction" style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 10px;
       padding: 8px 12px; position: relative; z-index: 5; background: rgba(122,47,224,.28);
       border-bottom: 1px solid rgba(158,94,255,.4);">
-      <span style="font-family: 'Anton'; font-size: 17px; letter-spacing: 1px; color: #f5b40a;">{{ instruction }}</span>
+      <span style="font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 17px; letter-spacing: 1px; color: #f5b40a;">{{ instruction }}</span>
       <sc-for list="{{ queueTeams }}" as="q" hint-placeholder-count="0">
         <span style="width: 30px; height: 30px; border-radius: 50%; background: #fff; display: inline-flex;
           align-items: center; justify-content: center; padding: 3px; border: 2px solid #f5b40a;">
@@ -191,7 +291,7 @@
   <div class="pm-ticker" style="height: 32px; flex: 0 0 auto; display: flex; align-items: center; position: relative; z-index: 5;
     background: #16092b; border-bottom: 2px solid #f5b40a; overflow: hidden;">
     <div style="flex: 0 0 auto; height: 100%; display: flex; align-items: center; gap: 7px;
-      padding: 0 14px; background: #f5b40a; color: #1c1204; font-family: 'Anton'; letter-spacing: .5px;
+      padding: 0 14px; background: #f5b40a; color: #1c1204; font-family: 'AntonLocal','Arial Black',sans-serif; letter-spacing: .5px;
       font-size: 16px; z-index: 2;">
       <span style="width: 9px; height: 9px; border-radius: 50%; background: #b5232d;"></span>
       LIVE
@@ -199,7 +299,7 @@
     <div style="flex: 1 1 auto; overflow: hidden;">
       <div style="display: inline-flex; white-space: nowrap; animation: tickerScroll 48s linear infinite; will-change: transform;">
         <sc-for list="{{ tickerLoop }}" as="ti" hint-placeholder-count="8">
-          <span style="display: inline-flex; align-items: center; font-family: 'Anton';
+          <span style="display: inline-flex; align-items: center; font-family: 'AntonLocal','Arial Black',sans-serif;
             font-size: 17px; letter-spacing: 1px; padding: 0 22px; color: {{ ti.color }};">
             <span style="opacity: .6; color: #9e5eff; margin-right: 22px;">👑</span>{{ ti.text }}
           </span>
@@ -216,7 +316,7 @@
       <sc-for list="{{ divisions }}" as="dv" hint-placeholder-count="6">
         <div style="flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: 3px;">
           <div style="flex: 0 0 auto; display: flex; align-items: center; gap: 8px; line-height: 1;">
-            <span style="font-family: 'Anton'; font-size: 15px; letter-spacing: 3px; color: {{ dv.color }};
+            <span style="font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 15px; letter-spacing: 3px; color: {{ dv.color }};
               text-shadow: 0 1px 4px rgba(0,0,0,.95);">{{ dv.label }}</span>
             <span style="flex: 1; height: 1px; background: linear-gradient(90deg, {{ dv.color }}, transparent);"></span>
           </div>
@@ -231,17 +331,17 @@
 
                 <sc-if value="{{ t.hasBid }}" hint-placeholder-val="{{ false }}">
                   <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #f5b40a; color: #1c1204;
-                    font-family: 'Anton'; font-size: 16px; letter-spacing: 1px; text-align: center; padding: 2px 0;
+                    font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 16px; letter-spacing: 1px; text-align: center; padding: 2px 0;
                     z-index: 2; border-top: 2px solid #1c1204;">BID {{ t.bidText }}</div>
                 </sc-if>
 
                 <sc-if value="{{ t.isWon }}" hint-placeholder-val="{{ false }}">
                   <div style="position: absolute; inset: 0; background: linear-gradient(rgba(14,8,24,.82), rgba(14,8,24,.82)), url('{{ t.stadium }}') center / cover no-repeat #0e0818;
                     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; z-index: 3;">
-                    <div style="font-family: 'Anton'; font-size: 19px; color: #f5b40a; border: 2px solid #f5b40a;
+                    <div style="font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 19px; color: #f5b40a; border: 2px solid #f5b40a;
                       border-radius: 4px; padding: 1px 9px; transform: rotate(-8deg); letter-spacing: 2px;
                       text-shadow: 0 1px 4px rgba(0,0,0,.9); box-shadow: 0 2px 8px rgba(0,0,0,.5);">WON</div>
-                    <div style="font-family: 'Oswald'; font-weight: 700; font-size: 15px; color: #fff; margin-top: 2px;
+                    <div style="font-family: 'OswaldLocal','Helvetica Neue',sans-serif; font-weight: 700; font-size: 15px; color: #fff; margin-top: 2px;
                       text-shadow: 0 1px 4px rgba(0,0,0,.95); text-align: center; max-width: 96%; line-height: 1.05;
                       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ t.winner }}</div>
                   </div>
@@ -257,16 +357,26 @@
   <!-- ===== STREAM FOOTER (only in ?view=stream) — live info + rip reveal ===== -->
   <sc-if value="{{ isStream }}" hint-placeholder-val="{{ false }}">
     <div class="pm-sfooter">
-      <div class="pm-sfooter-live"><span class="dot"></span>LIVE BOARD</div>
+      <div class="pm-scap">
+        <span class="cap-mark"></span>
+        <span class="cap-txt">LIVE BOARD</span>
+        <span class="live-dot"></span>
+      </div>
       <div class="pm-sfooter-scroll">
         <div class="pm-sfooter-track">
           <sc-for list="{{ tickerLoop }}" as="ti" hint-placeholder-count="8">
-            <span style="color: {{ ti.color }};"><span class="crown">👑</span>{{ ti.text }}</span>
+            <span style="color: {{ ti.color }};">
+              <span class="sep"></span>
+              <sc-if value="{{ ti.tag }}" hint-placeholder-val="{{ false }}">
+                <span class="pm-chip" style="background: {{ ti.chipBg }}; color: {{ ti.chipFg }};">{{ ti.tag }}</span>
+              </sc-if>
+              {{ ti.text }}
+            </span>
           </sc-for>
         </div>
       </div>
       <sc-if value="{{ streamRip }}" hint-placeholder-val="{{ false }}">
-        <div class="pm-srip"><span>🔥 {{ streamRipText }}</span></div>
+        <div class="pm-srip"><span class="rip-txt">{{ streamRipText }}</span></div>
       </sc-if>
     </div>
   </sc-if>
@@ -278,31 +388,31 @@
       <div onClick="{{ eatClick }}" style="width: min(440px, 92vw); border-radius: 16px; border: 3px solid #f5b40a;
         background: #170d29; box-shadow: 0 24px 70px rgba(0,0,0,.8); padding: 16px 18px;
         display: flex; flex-direction: column; gap: 10px; animation: rise .3s ease;">
-        <div style="font-family: 'Anton'; font-size: 18px; letter-spacing: 1px; color: #f5b40a;">🎁 GIVVY DROP</div>
+        <div style="font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 18px; letter-spacing: 1px; color: #f5b40a;">🎁 GIVVY DROP</div>
         <div style="display: flex; gap: 5px; background: #120a20; border: 1px solid rgba(158,94,255,.4); border-radius: 10px; padding: 4px;">
           <button onClick="{{ setBuyersMode }}" style="cursor: pointer; flex: 1; border: none; border-radius: 8px; padding: 9px 6px;
-            font-family: 'Anton'; font-size: 12px; color: {{ buyersTabColor }}; background: {{ buyersTabBg }};">BUYERS · {{ buyersCount }}</button>
+            font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 12px; color: {{ buyersTabColor }}; background: {{ buyersTabBg }};">BUYERS · {{ buyersCount }}</button>
           <button onClick="{{ setFollowersMode }}" style="cursor: pointer; flex: 1; border: none; border-radius: 8px; padding: 9px 6px;
-            font-family: 'Anton'; font-size: 12px; color: {{ followersTabColor }}; background: {{ followersTabBg }};">FOLLOWERS</button>
+            font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 12px; color: {{ followersTabColor }}; background: {{ followersTabBg }};">FOLLOWERS</button>
         </div>
         <sc-if value="{{ isBuyersMode }}" hint-placeholder-val="{{ true }}">
-          <div style="font-family: 'Oswald'; font-weight: 500; font-size: 12px; color: #9c8bbf; text-align: center;">
+          <div style="font-family: 'OswaldLocal','Helvetica Neue',sans-serif; font-weight: 500; font-size: 12px; color: #9c8bbf; text-align: center;">
             auto-drawn from everyone who won a team this break</div>
         </sc-if>
         <sc-if value="{{ isFollowersMode }}" hint-placeholder-val="{{ false }}">
           <textarea value="{{ givvyNames }}" onChange="{{ setGivvy }}" placeholder="paste @followers — one per line"
             style="resize: none; height: 64px; background: #120a20; border: 1px solid rgba(158,94,255,.4); border-radius: 10px;
-            color: #f3edff; font-family: 'Oswald'; font-size: 13px; padding: 8px 10px; outline: none;"></textarea>
+            color: #f3edff; font-family: 'OswaldLocal','Helvetica Neue',sans-serif; font-size: 13px; padding: 8px 10px; outline: none;"></textarea>
         </sc-if>
         <div style="min-height: 46px; border-radius: 10px; background: #120a20; border: 2px dashed rgba(245,180,10,.55);
           display: flex; align-items: center; justify-content: center; text-align: center; padding: 6px;
-          font-family: 'Anton'; font-size: 18px; color: {{ givvyColor }}; letter-spacing: 1px;">{{ givvyDisplayText }}</div>
+          font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 18px; color: {{ givvyColor }}; letter-spacing: 1px;">{{ givvyDisplayText }}</div>
         <button onClick="{{ spinGivvy }}" style="cursor: pointer; border: 2px solid #f5b40a; border-radius: 10px; padding: 11px;
-          font-family: 'Anton'; font-size: 15px; letter-spacing: 1px; color: #1c1204;
+          font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 15px; letter-spacing: 1px; color: #1c1204;
           background: linear-gradient(90deg,#f5b40a,#ffd257); transition: filter .15s ease;"
           style-hover="filter: brightness(1.08);">{{ spinLabel }}</button>
         <button onClick="{{ closeGivvy }}" style="cursor: pointer; border: none; background: transparent; color: #7c6b9e;
-          font-family: 'Oswald'; font-weight: 600; font-size: 12px; letter-spacing: 1px; padding: 4px;">CLOSE</button>
+          font-family: 'OswaldLocal','Helvetica Neue',sans-serif; font-weight: 600; font-size: 12px; letter-spacing: 1px; padding: 4px;">CLOSE</button>
       </div>
     </div>
   </sc-if>
@@ -315,12 +425,12 @@
         background: #170d29; box-shadow: 0 24px 70px rgba(0,0,0,.8); padding: 16px 18px;
         display: flex; flex-direction: column; gap: 10px; animation: rise .3s ease;">
         <div style="display: flex; align-items: center; justify-content: space-between;">
-          <span style="font-family: 'Anton'; font-size: 18px; letter-spacing: 1px; color: #f5b40a;">👑 RECENT RIPS</span>
-          <span style="font-family: 'Anton'; font-size: 14px; color: #cbb8ef;">{{ winCount }}</span>
+          <span style="font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 18px; letter-spacing: 1px; color: #f5b40a;">👑 RECENT RIPS</span>
+          <span style="font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 14px; color: #cbb8ef;">{{ winCount }}</span>
         </div>
         <div style="flex: 1 1 auto; min-height: 60px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
           <sc-if value="{{ noWins }}" hint-placeholder-val="{{ true }}">
-            <div style="color: #7c6b9e; font-family: 'Oswald'; font-size: 13px; text-align: center; padding: 16px 0;">no winners yet — let's chase hits!</div>
+            <div style="color: #7c6b9e; font-family: 'OswaldLocal','Helvetica Neue',sans-serif; font-size: 13px; text-align: center; padding: 16px 0;">no winners yet — let's chase hits!</div>
           </sc-if>
           <sc-for list="{{ wins }}" as="w" hint-placeholder-count="0">
             <div style="display: flex; align-items: center; gap: 9px; background: rgba(18,10,32,.9); border: 1px solid rgba(158,94,255,.35);
@@ -330,19 +440,19 @@
                 border: 2px solid {{ w.color }};">
                 <img src="{{ w.logo }}" alt="{{ w.team }}" style="width: 100%; height: 100%; object-fit: contain;" /></div>
               <div style="min-width: 0; display: flex; align-items: baseline; gap: 8px; overflow: hidden; flex: 1 1 auto;">
-                <span style="font-family: 'Oswald'; font-weight: 700; font-size: 14px; color: #fff; white-space: nowrap;">{{ w.winner }}</span>
-                <span style="font-family: 'Barlow Condensed'; font-weight: 600; font-size: 12px; color: #cbb8ef;
+                <span style="font-family: 'OswaldLocal','Helvetica Neue',sans-serif; font-weight: 700; font-size: 14px; color: #fff; white-space: nowrap;">{{ w.winner }}</span>
+                <span style="font-family: 'OswaldLocal','Helvetica Neue',sans-serif; font-weight: 600; font-size: 12px; color: #cbb8ef;
                   text-transform: uppercase; white-space: nowrap;">{{ w.team }}</span>
               </div>
               <sc-if value="{{ w.hasPrice }}" hint-placeholder-val="{{ false }}">
-                <span style="font-family: 'Anton'; font-size: 13px; color: #f5b40a; background: #120a20; padding: 2px 8px;
+                <span style="font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 13px; color: #f5b40a; background: #120a20; padding: 2px 8px;
                   border-radius: 6px; border: 1px solid rgba(245,180,10,.5); flex: 0 0 auto;">{{ w.priceText }}</span>
               </sc-if>
             </div>
           </sc-for>
         </div>
         <button onClick="{{ closeRips }}" style="cursor: pointer; border: none; background: transparent; color: #7c6b9e;
-          font-family: 'Oswald'; font-weight: 600; font-size: 12px; letter-spacing: 1px; padding: 4px;">CLOSE</button>
+          font-family: 'OswaldLocal','Helvetica Neue',sans-serif; font-weight: 600; font-size: 12px; letter-spacing: 1px; padding: 4px;">CLOSE</button>
       </div>
     </div>
   </sc-if>
@@ -359,74 +469,74 @@
             align-items: center; justify-content: center; padding: 20px; border: 3px solid rgba(0,0,0,.2);
             box-shadow: 0 10px 30px rgba(0,0,0,.45);">
             <img src="{{ detailTeam.logo }}" alt="{{ detailTeam.name }}" style="width: 100%; height: 100%; object-fit: contain;" /></div>
-          <div style="font-family: 'Anton'; font-size: 28px; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.6);
+          <div style="font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 28px; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.6);
             letter-spacing: 1px; text-align: center; line-height: 1;">{{ detailTeam.city }} {{ detailTeam.name }}</div>
-          <div style="font-family: 'Pacifico'; font-size: 14px; color: rgba(255,255,255,.92);">{{ detailKicker }}</div>
+          <div style="font-family: 'OswaldLocal','Helvetica Neue',sans-serif; font-size: 14px; color: rgba(255,255,255,.92);">{{ detailKicker }}</div>
         </div>
         <div style="padding: 12px 16px 14px; display: flex; flex-direction: column; gap: 9px;">
-          <div style="font-family: 'Anton'; font-size: 11px; letter-spacing: 3px; color: #f5b40a; text-align: center;">TOP CHASES THIS YEAR</div>
+          <div style="font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 11px; letter-spacing: 3px; color: #f5b40a; text-align: center;">TOP CHASES THIS YEAR</div>
           <div style="display: flex; flex-direction: column; gap: 6px;">
             <sc-for list="{{ detailPlayers }}" as="pl" hint-placeholder-count="3">
               <div style="background: #120a20; border: 1px solid rgba(158,94,255,.45); border-radius: 9px; padding: 9px 12px;
-                font-family: 'Oswald'; font-weight: 600; font-size: 16px; color: #f3edff; text-align: center;">{{ pl }}</div>
+                font-family: 'OswaldLocal','Helvetica Neue',sans-serif; font-weight: 600; font-size: 16px; color: #f3edff; text-align: center;">{{ pl }}</div>
             </sc-for>
           </div>
           <sc-if value="{{ detailIsPlain }}" hint-placeholder-val="{{ false }}">
-            <button onClick="{{ detailWin }}" style="cursor: pointer; border: 2px solid #fff; font-family: 'Anton'; font-size: 19px;
+            <button onClick="{{ detailWin }}" style="cursor: pointer; border: 2px solid #fff; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 19px;
               letter-spacing: 1px; color: #1c1204; background: linear-gradient(90deg,#f5b40a,#ffd257); padding: 15px; border-radius: 10px;
               transition: filter .15s ease;" style-hover="filter: brightness(1.08);">MARK AS WON</button>
           </sc-if>
           <sc-if value="{{ detailIsWon }}" hint-placeholder-val="{{ false }}">
             <button onClick="{{ detailUndo }}" style="cursor: pointer; border: 2px solid #b5232d; background: rgba(181,35,45,.15);
-              color: #ff9d9d; font-family: 'Anton'; font-size: 16px; padding: 14px; border-radius: 10px;">PUT BACK ON BOARD</button>
+              color: #ff9d9d; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 16px; padding: 14px; border-radius: 10px;">PUT BACK ON BOARD</button>
           </sc-if>
           <sc-if value="{{ detailIsSP1 }}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; gap: 10px;">
-              <button onClick="{{ detailStash }}" style="cursor: pointer; flex: 1; border: 2px solid #fff; font-family: 'Anton'; font-size: 19px;
+              <button onClick="{{ detailStash }}" style="cursor: pointer; flex: 1; border: 2px solid #fff; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 19px;
                 letter-spacing: 1px; color: #1c1204; background: linear-gradient(90deg,#f5b40a,#ffd257); padding: 14px; border-radius: 10px;
                 transition: filter .15s ease;" style-hover="filter: brightness(1.08);">STASH IT</button>
-              <button onClick="{{ detailPass }}" style="cursor: pointer; flex: 1; border: 2px solid #9e5eff; font-family: 'Anton'; font-size: 19px;
+              <button onClick="{{ detailPass }}" style="cursor: pointer; flex: 1; border: 2px solid #9e5eff; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 19px;
                 letter-spacing: 1px; color: #e6d8ff; background: rgba(122,47,224,.35); padding: 14px; border-radius: 10px;
                 transition: filter .15s ease;" style-hover="filter: brightness(1.15);">PASS</button>
             </div>
-            <div style="font-family: 'Oswald'; font-size: 12px; color: #9c8bbf; text-align: center;">pass = team goes back on the board · whatnot spins again · next spin is a blind keep</div>
+            <div style="font-family: 'OswaldLocal','Helvetica Neue',sans-serif; font-size: 12px; color: #9c8bbf; text-align: center;">pass = team goes back on the board · whatnot spins again · next spin is a blind keep</div>
           </sc-if>
           <sc-if value="{{ detailIsSP2 }}" hint-placeholder-val="{{ false }}">
-            <button onClick="{{ detailLock }}" style="cursor: pointer; border: 2px solid #fff; font-family: 'Anton'; font-size: 19px;
+            <button onClick="{{ detailLock }}" style="cursor: pointer; border: 2px solid #fff; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 19px;
               letter-spacing: 1px; color: #1c1204; background: linear-gradient(90deg,#f5b40a,#ffd257); padding: 14px; border-radius: 10px;
               transition: filter .15s ease;" style-hover="filter: brightness(1.08);">LOCK IT IN — NO TAKEBACKS</button>
           </sc-if>
           <sc-if value="{{ detailIsAuction }}" hint-placeholder-val="{{ false }}">
-            <button onClick="{{ detailBid }}" style="cursor: pointer; border: 2px solid #fff; font-family: 'Anton'; font-size: 19px;
+            <button onClick="{{ detailBid }}" style="cursor: pointer; border: 2px solid #fff; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 19px;
               letter-spacing: 1px; color: #fff; background: linear-gradient(90deg,#b5232d,#e04b3a); padding: 15px; border-radius: 10px;
               transition: filter .15s ease;" style-hover="filter: brightness(1.1);">START LIVE BID</button>
-            <div style="font-family: 'Oswald'; font-size: 12px; color: #9c8bbf; text-align: center;">bid runs in chat while you rip — the price shows right on the card · tap the card anytime to update</div>
+            <div style="font-family: 'OswaldLocal','Helvetica Neue',sans-serif; font-size: 12px; color: #9c8bbf; text-align: center;">bid runs in chat while you rip — the price shows right on the card · tap the card anytime to update</div>
           </sc-if>
           <sc-if value="{{ detailIsBid }}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; justify-content: center;">
-              <span style="font-family: 'Anton'; font-size: 46px; line-height: 1; color: #f5b40a; background: #120a20;
+              <span style="font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 46px; line-height: 1; color: #f5b40a; background: #120a20;
                 padding: 8px 24px; border-radius: 12px; border: 2px solid #f5b40a; letter-spacing: 2px;">{{ detailBidText }}</span>
             </div>
             <div style="display: flex; gap: 8px; justify-content: center;">
               <button onClick="{{ bidM5 }}" style="cursor: pointer; border: 1px solid rgba(255,255,255,.35); background: rgba(18,10,32,.85);
-                color: #ff9d9d; font-family: 'Anton'; font-size: 15px; flex: 1; height: 48px; border-radius: 9px;">−5</button>
+                color: #ff9d9d; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 15px; flex: 1; height: 48px; border-radius: 9px;">−5</button>
               <button onClick="{{ bidP1 }}" style="cursor: pointer; border: 1px solid #f5b40a; background: rgba(245,180,10,.15);
-                color: #ffd257; font-family: 'Anton'; font-size: 17px; flex: 1; height: 48px; border-radius: 9px;">+1</button>
+                color: #ffd257; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 17px; flex: 1; height: 48px; border-radius: 9px;">+1</button>
               <button onClick="{{ bidP5 }}" style="cursor: pointer; border: 1px solid #f5b40a; background: rgba(245,180,10,.15);
-                color: #ffd257; font-family: 'Anton'; font-size: 17px; flex: 1; height: 48px; border-radius: 9px;">+5</button>
+                color: #ffd257; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 17px; flex: 1; height: 48px; border-radius: 9px;">+5</button>
               <button onClick="{{ bidP10 }}" style="cursor: pointer; border: 1px solid #f5b40a; background: rgba(245,180,10,.15);
-                color: #ffd257; font-family: 'Anton'; font-size: 17px; flex: 1; height: 48px; border-radius: 9px;">+10</button>
+                color: #ffd257; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 17px; flex: 1; height: 48px; border-radius: 9px;">+10</button>
               <button onClick="{{ bidP25 }}" style="cursor: pointer; border: 1px solid #f5b40a; background: rgba(245,180,10,.15);
-                color: #ffd257; font-family: 'Anton'; font-size: 17px; flex: 1; height: 48px; border-radius: 9px;">+25</button>
+                color: #ffd257; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 17px; flex: 1; height: 48px; border-radius: 9px;">+25</button>
             </div>
-            <button onClick="{{ endLiveBid }}" style="cursor: pointer; border: 2px solid #fff; font-family: 'Anton'; font-size: 19px;
+            <button onClick="{{ endLiveBid }}" style="cursor: pointer; border: 2px solid #fff; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 19px;
               letter-spacing: 1px; color: #1c1204; background: linear-gradient(90deg,#f5b40a,#ffd257); padding: 15px; border-radius: 10px;
               transition: filter .15s ease;" style-hover="filter: brightness(1.08);">SOLD — END THE BID</button>
             <button onClick="{{ dropLiveBid }}" style="cursor: pointer; border: 2px solid #b5232d; background: rgba(181,35,45,.15);
-              color: #ff9d9d; font-family: 'Anton'; font-size: 13px; padding: 10px; border-radius: 9px;">CANCEL BID — NO SALE</button>
+              color: #ff9d9d; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 13px; padding: 10px; border-radius: 9px;">CANCEL BID — NO SALE</button>
           </sc-if>
           <button onClick="{{ detailCancel }}" style="cursor: pointer; border: none; background: transparent; color: #7c6b9e;
-            font-family: 'Oswald'; font-weight: 600; font-size: 12px; letter-spacing: 1px; padding: 4px;">CANCEL</button>
+            font-family: 'OswaldLocal','Helvetica Neue',sans-serif; font-weight: 600; font-size: 12px; letter-spacing: 1px; padding: 4px;">CANCEL</button>
         </div>
       </div>
     </div>
@@ -438,7 +548,7 @@
       display: flex; flex-direction: column; align-items: center;
       justify-content: center; gap: 20px; background: url('./photos/night.jpg') center / cover no-repeat; padding: 16px;">
       <div style="position: absolute; inset: 0; background: rgba(10,5,20,.88);"></div>
-      <div style="position: relative; font-family: 'Anton'; font-size: 30px; letter-spacing: 2px; color: #f5b40a;
+      <div style="position: relative; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 30px; letter-spacing: 2px; color: #f5b40a;
         text-shadow: 0 2px 12px rgba(0,0,0,.8);">BUYER'S CHOICE — PICK ONE</div>
       <div style="position: relative; display: flex; flex-direction: column; gap: 12px; width: min(560px, 94vw);">
         <sc-for list="{{ chooserTeams }}" as="p" hint-placeholder-count="2">
@@ -450,84 +560,99 @@
               align-items: center; justify-content: center; padding: 8px; border: 2px solid rgba(0,0,0,.2);">
               <img src="{{ p.logo }}" alt="{{ p.name }}" style="width: 100%; height: 100%; object-fit: contain;" /></div>
             <div style="min-width: 0;">
-              <div style="font-family: 'Anton'; font-size: 22px; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.6); letter-spacing: 1px;">{{ p.city }} {{ p.name }}</div>
-              <div style="font-family: 'Oswald'; font-weight: 600; font-size: 13px; color: rgba(255,255,255,.92);">{{ p.playerLine }}</div>
+              <div style="font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 22px; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.6); letter-spacing: 1px;">{{ p.city }} {{ p.name }}</div>
+              <div style="font-family: 'OswaldLocal','Helvetica Neue',sans-serif; font-weight: 600; font-size: 13px; color: rgba(255,255,255,.92);">{{ p.playerLine }}</div>
             </div>
           </div>
         </sc-for>
       </div>
       <button onClick="{{ chooserCancel }}" style="position: relative; cursor: pointer; border: 1px solid rgba(158,94,255,.6); background: transparent;
-        color: #cbb8ef; font-family: 'Anton'; font-size: 13px; letter-spacing: 2px; padding: 10px 24px; border-radius: 8px;">CANCEL</button>
+        color: #cbb8ef; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 13px; letter-spacing: 2px; padding: 10px 24px; border-radius: 8px;">CANCEL</button>
     </div>
   </sc-if>
 
-  <!-- ===== WIN TAKEOVER ===== -->
+  <!-- ===== WIN TAKEOVER — STADIUM SLAM ===== -->
   <sc-if value="{{ overlayTeam }}" hint-placeholder-val="{{ false }}">
     <div class="pm-takeover" style="position: fixed; left: 0; right: 0; bottom: 0; top: calc(100vw / 3.365 + 3px); z-index: 60; overflow: hidden;
-      background: url('{{ overlayTeam.stadium }}') center 60% / cover no-repeat, url('./photos/aerial-bw.jpg') center 70% / cover no-repeat #0c0913;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px;">
+      background: url('{{ overlayTeam.stadium }}') center 60% / cover no-repeat, url('./photos/aerial-bw.jpg') center 70% / cover no-repeat #0c0913;">
+      <!-- fixed bg wash layers (never shake — no bare-camera edge gaps) -->
       <div style="position: absolute; inset: 0; background: {{ overlayTeam.color }}; opacity: .55; mix-blend-mode: multiply;"></div>
       <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12,6,24,.4), rgba(12,6,24,.7));"></div>
 
-      <sc-for list="{{ confetti }}" as="c" hint-placeholder-count="0">
-        <span style="position: absolute; top: 0; left: {{ c.left }}; width: 10px; height: 16px; background: {{ c.color }};
-          border-radius: 2px; z-index: 4; animation: confettiFall {{ c.dur }} linear {{ c.delay }} forwards;"></span>
-      </sc-for>
-
-      <!-- team-colored fireworks -->
-      <sc-for list="{{ fireworks }}" as="f" hint-placeholder-count="0">
-        <span style="position: absolute; left: {{ f.left }}; top: {{ f.top }}; width: 7px; height: 7px; border-radius: 50%;
-          background: {{ f.color }}; box-shadow: 0 0 10px {{ f.color }}, 0 0 20px {{ f.color }}; z-index: 4;
-          --a: {{ f.angle }}; --d: {{ f.dist }};
-          animation: fwShoot {{ f.dur }} ease-out {{ f.delay }} infinite;"></span>
-      </sc-for>
-
-      <button onClick="{{ closeOverlay }}" style="position: absolute; top: 12px; right: 16px; z-index: 6; cursor: pointer;
+      <button onClick="{{ closeOverlay }}" style="position: absolute; top: 12px; right: 16px; z-index: 8; cursor: pointer;
         border: 1px solid rgba(255,255,255,.4); background: rgba(0,0,0,.45); color: #fff; width: 44px; height: 44px; border-radius: 50%; font-size: 20px;">✕</button>
 
-      <div style="position: relative; z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 6px;">
-        <div style="width: 170px; height: 170px; border-radius: 50%; background: #fff; display: flex; align-items: center;
-          justify-content: center; padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,.6), 0 0 50px rgba(245,180,10,.4);
-          border: 5px solid #f5b40a; animation: logoPop .6s cubic-bezier(.2,1.3,.4,1) both;">
-          <img src="{{ overlayTeam.logo }}" alt="{{ overlayTeam.name }}" style="width: 100%; height: 100%; object-fit: contain;" /></div>
-        <div style="font-family: 'Pacifico'; font-size: 20px; color: #f5b40a; margin-top: 12px;
-          text-shadow: 0 2px 10px rgba(0,0,0,.7); animation: rise .5s ease both;">{{ overlayTeam.city }}</div>
-        <div style="font-family: 'Anton'; font-size: 62px; line-height: .95; color: #fff; text-align: center;
-          text-shadow: 0 4px 30px rgba(0,0,0,.7); animation: rise .5s ease .08s both; letter-spacing: 2px;">{{ overlayTeamUpper }}</div>
-      </div>
+      <!-- inner content wrapper — carries the one-shot hit-shake (announced only) so the cover stays put -->
+      <div class="pm-slam-inner {{ overlaySlamClass }}">
 
-      <div style="position: relative; z-index: 5; margin-top: 26px; width: min(540px, 92vw);">
+        <!-- ONE gold-forward radial burst (announced only) — replaces the 98 infinite fireworks -->
         <sc-if value="{{ overlayAnnounced }}" hint-placeholder-val="{{ false }}">
-          <div style="display: flex; flex-direction: column; align-items: center; gap: 14px; animation: rise .5s ease both;">
-            <div style="font-family: 'Anton'; font-size: 24px; text-align: center; color: #fff; background: rgba(12,6,24,.6);
-              padding: 14px 24px; border-radius: 12px; border: 3px solid #f5b40a; letter-spacing: 1px;">
-              <span style="color: #f5b40a;">{{ overlayWinner }}</span> {{ overlayWinVerb }} THE {{ overlayTeamUpper }}!
-            </div>
-            <sc-if value="{{ overlayHasPrice }}" hint-placeholder-val="{{ false }}">
-              <div style="font-family: 'Anton'; font-size: 40px; color: #f5b40a; background: #120a20; padding: 6px 22px;
-                border-radius: 12px; border: 2px solid #f5b40a; letter-spacing: 2px;">{{ overlayPriceText }}</div>
-            </sc-if>
-            <div style="font-family: 'Oswald'; font-weight: 600; font-size: 12px; letter-spacing: 2px; color: rgba(255,255,255,.75);">LOCKED ON THE BOARD ✓</div>
-          </div>
+          <div style="position: absolute; left: 50%; top: 40%; width: 1000px; height: 1000px; z-index: 2; pointer-events: none;
+            background: {{ overlayBurst }}; animation: burstPop 1.1s cubic-bezier(.15,.7,.3,1) both;"></div>
         </sc-if>
-        <sc-if value="{{ overlayEntering }}" hint-placeholder-val="{{ true }}">
-          <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
-            <sc-if value="{{ overlayHasPrice }}" hint-placeholder-val="{{ false }}">
-              <div style="font-family: 'Anton'; font-size: 30px; color: #f5b40a; background: rgba(12,6,24,.65); padding: 5px 20px;
-                border-radius: 10px; border: 2px solid #f5b40a; letter-spacing: 2px;">FINAL BID {{ overlayPriceText }}</div>
-            </sc-if>
-            <div style="font-family: 'Anton'; font-size: 14px; letter-spacing: 4px; color: rgba(255,255,255,.92);">{{ overlayPrompt }}</div>
-            <div style="display: flex; gap: 10px; width: 100%;">
-              <input value="{{ overlayWinner }}" onChange="{{ setWinnerName }}" onKeyDown="{{ winnerKey }}"
-                placeholder="enter winner username" autofocus
-                style="flex: 1; background: rgba(12,6,24,.65); border: 2px solid rgba(255,255,255,.6); border-radius: 10px;
-                color: #fff; font-family: 'Anton'; font-size: 18px; padding: 13px 16px; outline: none; text-align: center; letter-spacing: 1px;" />
-              <button onClick="{{ crownWinner }}" style="cursor: pointer; border: 2px solid #fff; font-family: 'Anton'; font-size: 16px;
-                color: #1c1204; background: linear-gradient(90deg,#f5b40a,#ffd257); padding: 0 24px; border-radius: 10px;
-                transition: filter .15s ease;" style-hover="filter: brightness(1.08);">WON</button>
+
+        <!-- confetti: 44 plain spans, one-shot forwards, self-terminating, NO glow -->
+        <sc-for list="{{ confetti }}" as="c" hint-placeholder-count="0">
+          <span style="position: absolute; top: 0; left: {{ c.left }}; width: 10px; height: 16px; background: {{ c.color }};
+            border-radius: 2px; z-index: 3; animation: confettiFall {{ c.dur }} linear {{ c.delay }} forwards;"></span>
+        </sc-for>
+
+        <!-- reveal column -->
+        <div style="position: relative; z-index: 4; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+          <div style="width: 300px; height: 300px; border-radius: 50%; background: #fff; display: flex; align-items: center;
+            justify-content: center; padding: 38px; box-shadow: 0 20px 60px rgba(0,0,0,.6), 0 0 50px rgba(245,180,10,.4);
+            border: 6px solid #f5b40a; animation: logoPop .6s cubic-bezier(.2,1.3,.4,1) both;">
+            <img src="{{ overlayTeam.logo }}" alt="{{ overlayTeam.name }}" style="width: 100%; height: 100%; object-fit: contain;" /></div>
+          <div style="font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 36px; letter-spacing: 5px; text-transform: uppercase; color: #f5b40a;
+            text-shadow: 0 2px 12px rgba(0,0,0,.8); animation: rise .5s ease both;">{{ overlayCityUpper }}</div>
+          <div style="font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 72px; line-height: .95; letter-spacing: 2px; color: #fff; text-align: center;
+            -webkit-text-stroke: 2px #1c1204; text-shadow: 0 4px 30px rgba(0,0,0,.75), 0 0 24px rgba(245,180,10,.35);
+            animation: rise .5s ease .08s both;">{{ overlayTeamUpper }}</div>
+
+          <!-- WON/SOLD stamp — hero slam (announced only) -->
+          <sc-if value="{{ overlayAnnounced }}" hint-placeholder-val="{{ false }}">
+            <div class="pm-slam-stamp" style="transform: rotate(-4deg); background: #0c0913; border: 4px solid #f5b40a; border-radius: 8px; padding: 10px 44px;
+              box-shadow: 0 12px 40px rgba(0,0,0,.6), 0 0 30px rgba(245,180,10,.25); animation: stampSlam .45s cubic-bezier(.2,1.3,.4,1) .25s both;">
+              <div style="transform: skewX(-6deg); font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 88px; color: #f5b40a; letter-spacing: 1px;
+                text-shadow: 0 3px 0 rgba(0,0,0,.5);">{{ overlayStampWord }}</div></div>
+          </sc-if>
+        </div>
+
+        <!-- payoff block -->
+        <div style="position: relative; z-index: 5; margin-top: 30px; width: min(620px, 94vw);">
+          <sc-if value="{{ overlayAnnounced }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; animation: rise .5s ease .12s both;">
+              <div style="width: 100%; text-align: center; background: #120a20; border: 3px solid #f5b40a; border-radius: 14px; padding: 16px 28px;">
+                <div style="font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 52px; line-height: 1; color: #f5b40a; letter-spacing: 1px;
+                  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ overlayWinner }}</div>
+                <div style="font-family: 'OswaldLocal','Helvetica Neue',sans-serif; font-weight: 600; font-size: 22px; letter-spacing: 2px; color: #f3edff; margin-top: 8px;">{{ overlayWinVerb }} THE {{ overlayTeamUpper }}</div>
+              </div>
+              <sc-if value="{{ overlayHasPrice }}" hint-placeholder-val="{{ false }}">
+                <div style="font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 56px; color: #f5b40a; background: #0c0913; padding: 8px 28px;
+                  border-radius: 12px; border: 3px solid #f5b40a; letter-spacing: 2px;">{{ overlayPriceText }}</div>
+              </sc-if>
+              <div style="font-family: 'OswaldLocal','Helvetica Neue',sans-serif; font-weight: 600; font-size: 13px; letter-spacing: 3px; color: rgba(243,237,255,.75);">LOCKED ON THE BOARD ✓</div>
             </div>
-          </div>
-        </sc-if>
+          </sc-if>
+          <sc-if value="{{ overlayEntering }}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+              <sc-if value="{{ overlayHasPrice }}" hint-placeholder-val="{{ false }}">
+                <div style="font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 30px; color: #f5b40a; background: rgba(12,6,24,.65); padding: 5px 20px;
+                  border-radius: 10px; border: 2px solid #f5b40a; letter-spacing: 2px;">FINAL BID {{ overlayPriceText }}</div>
+              </sc-if>
+              <div style="font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 14px; letter-spacing: 4px; color: rgba(255,255,255,.92);">{{ overlayPrompt }}</div>
+              <div style="display: flex; gap: 10px; width: 100%;">
+                <input value="{{ overlayWinner }}" onChange="{{ setWinnerName }}" onKeyDown="{{ winnerKey }}"
+                  placeholder="enter winner username" autofocus
+                  style="flex: 1; background: rgba(12,6,24,.65); border: 2px solid rgba(255,255,255,.6); border-radius: 10px;
+                  color: #fff; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 18px; padding: 13px 16px; outline: none; text-align: center; letter-spacing: 1px;" />
+                <button onClick="{{ crownWinner }}" style="cursor: pointer; border: 2px solid #fff; font-family: 'AntonLocal','Arial Black',sans-serif; font-size: 16px;
+                  color: #1c1204; background: linear-gradient(90deg,#f5b40a,#ffd257); padding: 0 24px; border-radius: 10px;
+                  transition: filter .15s ease;" style-hover="filter: brightness(1.08);">WON</button>
+              </div>
+            </div>
+          </sc-if>
+        </div>
       </div>
     </div>
   </sc-if>
@@ -718,11 +843,11 @@ class Component extends DCLogic {
     try { this.sfx('win'); this.sfx('stamp'); } catch (e) {}
     this.setState({
       overlay: { teamId: w.id || w.abbr, winner: w.winner, announced: true, auction, price: w.price || 0 },
-      saleFocus: '🔥 ' + w.winner + (auction ? ' TOOK THE ' + w.team.toUpperCase() + ' AUCTION' + priceTag + '!'
+      saleFocus: w.winner + (auction ? ' TOOK THE ' + w.team.toUpperCase() + ' AUCTION' + priceTag + '!'
                                              : ' WON THE ' + w.team.toUpperCase() + '!'),
     });
     if (this.overlayTimer) clearTimeout(this.overlayTimer);
-    this.overlayTimer = setTimeout(() => { this.overlayTimer = null; this.setState({ overlay: null }); }, 8000);
+    this.overlayTimer = setTimeout(() => { this.overlayTimer = null; this.setState({ overlay: null }); }, 3500);
     if (this.saleTimer) clearTimeout(this.saleTimer);
     this.saleTimer = setTimeout(() => { this.saleTimer = null; this.setState({ saleFocus: null }); }, 45000);
   }
@@ -755,6 +880,10 @@ class Component extends DCLogic {
   componentDidMount() {
     this.loadClips();
     this.startSync();   // realtime mirror if ?room is set (pull for stream display, push for controller)
+    // constant-speed footer ticker: measure AFTER the async webfont loads, else the fallback
+    // width locks in the wrong duration and the ticker drifts with content length.
+    this.setTickerSpeed();
+    try { if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => this.setTickerSpeed()); } catch (e) {}
     try {
       // ?demo=1 → standalone preview (seed some winners, don't touch saved state)
       if (new URLSearchParams(location.search).get('demo')) { this.seedDemo(); return; }
@@ -776,6 +905,50 @@ class Component extends DCLogic {
     } catch (e) {}
   }
 
+  // Runs after every reconcile. All DOM pokes here use the Web Animations API (el.animate),
+  // which is NOT a React-managed attribute, so reconciliation never strips these one-shots.
+  componentDidUpdate() {
+    const s = this.state;
+    const rem = s.teams.filter(t => t.status !== 'won').length;
+    // spots-sale pulse: retrigger only when the count actually decrements (a spot sold)
+    if (this._prevRemaining != null && rem < this._prevRemaining) {
+      const el = document.querySelector('.pm-app[data-view="stream"] .pm-mbug-spots');
+      if (el && el.animate) el.animate(
+        [{ transform: 'skewX(-12deg) scale(1)' }, { transform: 'skewX(-12deg) scale(1.12)' }, { transform: 'skewX(-12deg) scale(1)' }],
+        { duration: 340, easing: 'cubic-bezier(.34,1.56,.64,1)' });
+    }
+    this._prevRemaining = rem;
+    // back-to-back win takeover: when win #2 lands before the 3.5s timer, overlayTeam never
+    // goes null so .pm-takeover reconciles IN PLACE and the CSS one-shots (slam/burst) won't
+    // refire. Replay them via WAAPI, but only when the PREVIOUS render was already announced
+    // (a true in-place remount) — a fresh entering->announced mount lets CSS handle it.
+    const ann = !!(s.overlay && s.overlay.announced);
+    const winKey = ann ? ((s.overlay.teamId || '') + '|' + (s.overlay.winner || '')) : '';
+    if (ann && this._prevAnnounced && winKey && winKey !== this._prevWinKey) this._replaySlam();
+    this._prevAnnounced = ann;
+    this._prevWinKey = winKey;
+    this.setTickerSpeed();
+  }
+  // replay the hero "hit" beats on a reconciled-in-place takeover (transform/opacity only)
+  _replaySlam() {
+    const inner = document.querySelector('.pm-takeover .pm-slam-inner');
+    if (inner && inner.animate) inner.animate(
+      [{ transform: 'translate(0,0)' }, { transform: 'translate(-7px,4px)' }, { transform: 'translate(6px,-3px)' },
+       { transform: 'translate(-4px,3px)' }, { transform: 'translate(0,0)' }], { duration: 350, easing: 'ease' });
+    const stamp = document.querySelector('.pm-takeover .pm-slam-stamp');
+    if (stamp && stamp.animate) stamp.animate(
+      [{ transform: 'rotate(-4deg) scale(2.5)', opacity: 0 }, { transform: 'rotate(-4deg) scale(.9)', opacity: 1, offset: .62 },
+       { transform: 'rotate(-4deg) scale(1)', opacity: 1 }], { duration: 450, easing: 'cubic-bezier(.2,1.3,.4,1)' });
+  }
+  // constant footer-ticker speed (~95 px/s) whatever the content length. The list is doubled,
+  // so one visible copy = scrollWidth/2 and the -50% keyframe travels exactly that far.
+  setTickerSpeed() {
+    const tr = document.querySelector('.pm-app[data-view="stream"] .pm-sfooter-track');
+    if (!tr) return;
+    const half = tr.scrollWidth / 2;
+    if (half > 0) tr.style.animationDuration = (half / 95).toFixed(1) + 's';
+  }
+
   // ---------- audio ----------
   // Primary sounds are real samples in ./sounds/ (hit = ball off the bat, cheer =
   // stadium crowd). The synthesized crack()/cheer() below are kept only as a
@@ -791,33 +964,60 @@ class Component extends DCLogic {
     }
     if (this.actx && this.actx.state === 'suspended') this.actx.resume();
   }
-  // decode the mp3 clips into buffers once (context may be suspended — decoding still works)
+  // Preload pooled <audio> elements. No fetch / XHR / decodeAudioData / AudioContext —
+  // immune to the file:// opaque-origin block that killed decodeAudioData in OBS/CEF
+  // (fetch of a local file is CORS-blocked there). Works under file:// AND https.
+  // NOTE: deliberately NOT MediaElementAudioSourceNode — createMediaElementSource
+  // CORS-taints file:// media and would emit SILENCE while play() still resolves.
   loadClips() {
-    this.ensureAudio(); if (!this.actx || this._clipsLoading) return;
-    this._clipsLoading = true; this.clips = this.clips || {}; this._playing = this._playing || {};
-    const load = (name, url) => fetch(url).then(r => r.arrayBuffer())
-      .then(b => this.actx.decodeAudioData(b)).then(buf => { this.clips[name] = buf; }).catch(() => {});
-    load('hit', './sounds/hit.mp3');
-    load('cheer', './sounds/cheer.mp3');
+    if (this._clips) return;
+    this._clips = {};
+    const CFG = {
+      hit:   { url: './sounds/hit.mp3',   vol: 0.9, pool: 3 },  // 34KB  bat crack
+      cheer: { url: './sounds/cheer.mp3', vol: 1.0, pool: 2 },  // 520KB stadium roar
+    };
+    Object.keys(CFG).forEach((name) => {
+      const cfg = CFG[name], els = [];
+      for (let k = 0; k < cfg.pool; k++) {
+        const a = new Audio();
+        a.src = cfg.url;            // relative path resolves under file:// AND https
+        a.preload = 'auto';
+        a.volume = cfg.vol;         // level-matched per clip
+        try { a.load(); } catch (e) {}   // warm the decoder so the first play isn't late
+        els.push(a);
+      }
+      this._clips[name] = { cfg, els, i: 0 };
+    });
   }
-  // play a decoded clip; stops any prior instance of the same clip so rapid taps /
-  // back-to-back wins don't pile up. Returns false if the clip isn't ready.
+  // Play a real sample via HTMLAudioElement. Returns false only when there's no element
+  // at all (caller runs the synth). el.error or a rejected play() promise fires the synth
+  // fallback so the moment is NEVER silently dropped. Round-robins a small pool so rapid
+  // taps / back-to-back wins overlap instead of cutting each other off.
   playClip(name, opts) {
-    if (!this.actx || !this.clips || !this.clips[name]) return false;
+    const rec = this._clips && this._clips[name];
+    if (!rec) return false;                                  // no asset -> caller's synth
     opts = opts || {};
-    const prev = this._playing[name];
-    if (prev) { try { prev.stop(); } catch (e) {} }
-    const c = this.actx, t = c.currentTime;
-    const src = c.createBufferSource(); src.buffer = this.clips[name];
-    const g = c.createGain(); const vol = opts.gain != null ? opts.gain : 1;
-    g.gain.value = vol; src.connect(g); g.connect(this.master);
-    if (opts.maxDur) {   // cap long clips (the cheer) with a short fade so they don't overrun
-      const d = Math.min(opts.maxDur, this.clips[name].duration);
-      g.gain.setValueAtTime(vol, t + Math.max(0, d - 0.6));
-      g.gain.linearRampToValueAtTime(0.0001, t + d);
-      src.start(t); src.stop(t + d);
-    } else { src.start(t); }
-    this._playing[name] = src;
+    const synth = () => { if (name === 'cheer') this.cheer(); else this.crack(0, 0.8); };
+    const a = rec.els[rec.i]; rec.i = (rec.i + 1) % rec.els.length;
+    if (a.error) { synth(); return true; }                   // decode failed -> synth, not silence
+    if (a._cap)  { clearTimeout(a._cap);  a._cap  = null; }  // clear THIS element's prior cap/fade
+    if (a._fade) { clearInterval(a._fade); a._fade = null; }
+    try { a.pause(); a.currentTime = 0; } catch (e) {}
+    a.volume = opts.gain != null ? Math.min(1, opts.gain) : rec.cfg.vol;
+    let p;
+    try { p = a.play(); }                                    // NO fetch, NO actx, NO CORS taint
+    catch (e) { synth(); return true; }
+    if (p && p.catch) p.catch(() => synth());                // async reject (autoplay/interrupt) -> synth
+    if (opts.maxDur) {                                       // cap the long cheer, per element
+      const startFade = Math.max(0, opts.maxDur - 0.6) * 1000;
+      a._cap = setTimeout(() => {
+        a._fade = setInterval(() => {
+          if (a.volume > 0.06) { a.volume = Math.max(0, a.volume - 0.08); }
+          else { clearInterval(a._fade); a._fade = null;
+                 try { a.pause(); a.currentTime = 0; } catch (e) {} }
+        }, 60);
+      }, startFade);
+    }
     return true;
   }
   // cached white-noise buffer, reused by the crack and crowd sounds
@@ -894,11 +1094,14 @@ class Component extends DCLogic {
   }
   sfx(kind) {
     if (!this.state.soundOn) return;
-    this.ensureAudio(); if (!this.actx) return;
-    if (kind === 'click') { if (!this.playClip('hit', { gain: 0.9 })) this.crack(0, 0.8); }       // ball off the bat (sample; synth fallback)
-    else if (kind === 'coin') { [880, 1174, 1568].forEach((f, i) => this.tone(f, i * 0.07, 0.12, 'square', 0.13)); }
+    // Real samples FIRST, before any AudioContext guard, so a broken/blocked actx can't
+    // stop the mp3s. playClip uses HTMLAudioElement (plays local files under file:// in OBS);
+    // on any failure it runs the synth fallback so the moment is never silently dropped.
+    if (kind === 'click') { if (!this.playClip('hit',   { gain: 0.9 }))          { this.ensureAudio(); this.crack(0, 0.8); } return; }  // ball off the bat
+    if (kind === 'win')   { if (!this.playClip('cheer', { gain: 1, maxDur: 6 })) { this.ensureAudio(); this.cheer(); }       return; }  // stadium crowd
+    this.ensureAudio(); if (!this.actx) return;   // synth-only cues below need the context
+    if (kind === 'coin') { [880, 1174, 1568].forEach((f, i) => this.tone(f, i * 0.07, 0.12, 'square', 0.13)); }
     else if (kind === 'stamp') { this.tone(150, 0, 0.18, 'sine', 0.4); this.tone(90, 0.02, 0.22, 'sine', 0.3); }
-    else if (kind === 'win') { if (!this.playClip('cheer', { gain: 1, maxDur: 9 })) this.cheer(); }  // stadium crowd (sample; synth fallback)
   }
 
   // ---------- mode arming ----------
@@ -1021,7 +1224,7 @@ class Component extends DCLogic {
       const priceTag = o.auction && o.price > 0 ? ' — $' + o.price : '';
       return {
         overlay: { ...s.overlay, announced: true },
-        saleFocus: '🔥 ' + name + (o.auction ? ' TOOK THE ' + t.name.toUpperCase() + ' AUCTION' + priceTag + '!' : ' WON THE ' + t.name.toUpperCase() + '!'),
+        saleFocus: name + (o.auction ? ' TOOK THE ' + t.name.toUpperCase() + ' AUCTION' + priceTag + '!' : ' WON THE ' + t.name.toUpperCase() + '!'),
         teams: s.teams.map(x => x.id === o.teamId ? { ...x, status: 'won', winner: name } : x),
         wins: [{ id: t.id, abbr: t.abbr, color: t.color, team: t.name, winner: name, price: o.auction ? (o.price || 0) : 0 }, ...s.wins],
       };
@@ -1029,7 +1232,7 @@ class Component extends DCLogic {
     if (this.saleTimer) clearTimeout(this.saleTimer);
     this.saleTimer = setTimeout(() => { this.saleTimer = null; this.setState({ saleFocus: null }); }, 45000);
     if (this.overlayTimer) clearTimeout(this.overlayTimer);
-    this.overlayTimer = setTimeout(() => { this.overlayTimer = null; this.setState({ overlay: null }); }, 8000);
+    this.overlayTimer = setTimeout(() => { this.overlayTimer = null; this.setState({ overlay: null }); }, 3500);
     setTimeout(() => this.persist(), 0);
   }
   closeOverlay() {
@@ -1112,19 +1315,30 @@ class Component extends DCLogic {
     const remaining = s.teams.filter(t => t.status !== 'won').length;
     const pct = Math.round(((30 - remaining) / 30) * 100);
 
-    // ticker — sale focus for a bit after each stamp, otherwise wins + promos
+    // persistent OPEN-TEAMS strip — per-division open counts (always fits, at-a-glance which divisions still have teams)
+    const DIV_SHORT = { 'AL EAST': 'AL E', 'AL CENTRAL': 'AL C', 'AL WEST': 'AL W', 'NL EAST': 'NL E', 'NL CENTRAL': 'NL C', 'NL WEST': 'NL W' };
+    const openStrip = DIVS.map(d => ({
+      label: DIV_SHORT[d], color: d.indexOf('AL') === 0 ? '#f5b40a' : '#b789ff',
+      count: (byDiv[d] || []).filter(t => t.status !== 'won').length,
+    }));
+
+    // ticker — sale focus for a bit after each stamp, otherwise wins + promos. Category chips
+    // formalized (dark ink on light chips); HOW-TO chip uses #1c1204 on #9e5eff (AA, was 3.33:1).
+    const WIN = { tag: 'WIN', chipBg: '#f5b40a', chipFg: '#1c1204', color: '#f5b40a' };
     let items = [];
     if (s.saleFocus) {
       items = [
-        { text: s.saleFocus, color: '#f5b40a' },
-        { text: remaining + ' TEAMS STILL ON THE BOARD', color: '#ff9d9d' },
-        { text: s.saleFocus, color: '#f5b40a' },
-        { text: 'PACK MAMA · RIP · COLLECT · REPEAT', color: '#e6d8ff' },
+        { ...WIN, text: s.saleFocus },
+        { tag: 'LEFT', chipBg: '#ff9d9d', chipFg: '#1c1204', color: '#ff9d9d', text: remaining + ' TEAMS STILL ON THE BOARD' },
+        { ...WIN, text: s.saleFocus },
+        { color: '#e6d8ff', text: 'PACK MAMA · RIP · COLLECT · REPEAT' },
       ];
     } else {
-      s.wins.slice(0, 6).forEach(w => items.push({ text: (w.winner + ' RIPPED THE ' + w.team.toUpperCase() + '!'), color: '#f5b40a' }));
-      items.push({ text: remaining + ' TEAMS STILL ON THE BOARD', color: '#ff9d9d' });
-      s.promos.forEach(p => items.push({ text: p, color: '#e6d8ff' }));
+      s.wins.slice(0, 6).forEach(w => items.push({ ...WIN, text: (w.winner + ' RIPPED THE ' + w.team.toUpperCase() + '!') }));
+      items.push({ tag: 'LEFT', chipBg: '#ff9d9d', chipFg: '#1c1204', color: '#ff9d9d', text: remaining + ' TEAMS STILL ON THE BOARD' });
+      s.promos.forEach((p, i) => items.push(i === 0
+        ? { tag: 'HOW-TO', chipBg: '#9e5eff', chipFg: '#1c1204', color: '#e6d8ff', text: p }
+        : { color: '#cbb8ef', text: p }));
     }
     const tickerLoop = items.concat(items);
 
@@ -1151,32 +1365,17 @@ class Component extends DCLogic {
       return { ...t, playerLine: this.players(t.abbr).slice(0, 3).join(' · '), pick: () => this.pickFromChooser(id) };
     });
 
-    let confetti = [], fireworks = [];
+    // celebration confetti — 44 plain one-shot spans, self-terminating (forwards); the whole
+    // overlay unmounts at 3.5s so nodes are stripped. NO infinite fireworks (the OBS CPU spike).
+    let confetti = [];
     if (s.overlay && s.overlay.announced && overlayT) {
-      // celebration in the winning team's colors
       const cols = [overlayT.color, this.secondary(overlayT.abbr), '#ffffff'];
-      confetti = Array.from({ length: 80 }, () => ({
+      confetti = Array.from({ length: 44 }, () => ({
         left: Math.floor(Math.random() * 100) + '%',
         color: cols[Math.floor(Math.random() * cols.length)],
         dur: (1.8 + Math.random() * 1.6).toFixed(2) + 's',
         delay: (Math.random() * 0.5).toFixed(2) + 's',
       }));
-      const bursts = [
-        { left: 15, top: 30 }, { left: 84, top: 26 }, { left: 25, top: 68 },
-        { left: 75, top: 64 }, { left: 50, top: 18 }, { left: 8, top: 52 }, { left: 92, top: 50 },
-      ];
-      bursts.forEach((b, bi) => {
-        const n = 14, delay = (bi * 0.45).toFixed(2) + 's', dur = (1.4 + (bi % 3) * 0.25).toFixed(2) + 's';
-        for (let i = 0; i < n; i++) {
-          fireworks.push({
-            left: b.left + '%', top: b.top + '%',
-            angle: Math.round(i * (360 / n)) + 'deg',
-            dist: -(60 + (i % 3) * 22) + 'px',
-            color: cols[i % cols.length],
-            delay, dur,
-          });
-        }
-      });
     }
 
     const modeBtn = (on) => ({
@@ -1191,9 +1390,26 @@ class Component extends DCLogic {
 
     if (this._isStream === undefined) this._isStream = (new URLSearchParams(location.search).get('view') === 'stream');
 
+    // stream marquee-bug: viewer-facing MODE readout (keys off s.mode; armHB -> 'auction')
+    const MODE_LABELS = { sp: 'STASH · PASS', see2: 'SEE 2 · PICK 1', see3: 'SEE 3 · PICK 1', auction: 'HIGH BID — LIVE' };
+    const streamModeLabel = MODE_LABELS[s.mode] || 'LIVE';
+    // break title/subtitle seeded from URL params once (?title= / ?subtitle=), cached
+    if (this._streamMeta === undefined) {
+      const q = new URLSearchParams(location.search);
+      this._streamMeta = {
+        title: (q.get('title') || '2026 TOPPS SERIES 2').toUpperCase(),
+        subtitle: (q.get('subtitle') || '#1 SUPER BOX').toUpperCase(),
+      };
+    }
+    // gold-forward win burst so it never vanishes as a near-black blob for dark-primary teams
+    const overlayBurst = overlayT
+      ? 'radial-gradient(circle, rgba(245,180,10,.95) 0%, ' + overlayT.color + ' 38%, rgba(245,180,10,.15) 60%, transparent 72%)'
+      : 'radial-gradient(circle, rgba(245,180,10,.9) 0%, transparent 68%)';
+
     return {
-      divisions, remaining, pct, tickerLoop,
+      divisions, remaining, pct, tickerLoop, openStrip,
       viewMode: this._isStream ? 'stream' : 'board', isStream: this._isStream,
+      streamModeLabel, streamTitle: this._streamMeta.title, streamSubtitle: this._streamMeta.subtitle,
       streamSpots: remaining, streamLastWin: s.wins.length ? (s.wins[0].winner + ' → ' + s.wins[0].team) : 'first rip coming up',
       streamRip: !!(s.overlay && s.overlay.announced && overlayT),
       streamRipText: (s.overlay && overlayT) ? ((s.overlay.winner || '') + ' RIPPED THE ' + overlayT.name.toUpperCase() + '!') : '',
@@ -1243,6 +1459,10 @@ class Component extends DCLogic {
 
       overlayTeam: overlayT,
       overlayTeamUpper: overlayT ? overlayT.name.toUpperCase() : '',
+      overlayCityUpper: overlayT ? (overlayT.city || '').toUpperCase() : '',
+      overlayBurst,
+      overlayStampWord: (s.overlay && s.overlay.auction) ? 'SOLD' : 'WON',
+      overlaySlamClass: (s.overlay && s.overlay.announced) ? 'is-slam' : '',
       overlayPrompt: s.overlay && s.overlay.auction ? 'WHO WON THE BID?' : 'WHO WON IT?',
       overlayWinVerb: s.overlay && s.overlay.auction ? 'TOOK' : 'WON',
       overlayHasPrice: !!(s.overlay && s.overlay.auction && (s.overlay.price || 0) > 0),
@@ -1252,7 +1472,7 @@ class Component extends DCLogic {
       overlayEntering: !!(s.overlay && !s.overlay.announced),
       setWinnerName: (e) => this.setWinnerName(e), winnerKey: (e) => this.winnerKey(e),
       crownWinner: () => this.crownWinner(), closeOverlay: () => this.closeOverlay(),
-      confetti, fireworks,
+      confetti,
 
       hasGivvyOpen: !!s.givvyOpen, hasRipsOpen: !!s.ripsOpen,
       openGivvy: () => this.openGivvy(), closeGivvy: () => this.closeGivvy(),
