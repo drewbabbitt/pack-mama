@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080, height=1920">
+<title>Pack Mama — Auction HUD (Clean Broadcast)</title>
+<!--
+  PACK MAMA — LOT HUD · "Clean Broadcast" skin · 1080x1920 OBS overlay
+  ------------------------------------------------------------------------
+  Self-contained: inline CSS + JS. Fonts are self-hosted woff2 kept BESIDE
+  this file (anton-latin.woff2, oswald-latin-var.woff2) exactly like the
+  broadcast-network rig — no runtime CDN, and it renders identically on an
+  offline OBS box. If the fonts are ever missing it falls back to
+  Arial Black / Avenir Next. html/body are TRANSPARENT so the live rip-cam
+  shows through the centered spotlight window.
+
+  TWO CONTEXTS, ONE FILE:
+    • DISPLAY (OBS browser source): open the file PLAIN (no query string).
+      -> renders the HUD only. The operator panel AND its "c" hotkey are
+         never even registered, so no stray keypress (OBS Interact, an OS
+         hotkey passthrough, an option-(a) same-URL CEF source) can reveal
+         the control rail on stream. The display is physically panel-less.
+    • CONTROL (your laptop, or an OBS control source kept OUT of scene):
+      open with ?op=1 . The panel shows on load and "c" toggles it. The
+      hotkey only exists in this ?op=1 context.
+
+  SHARED ORIGIN (before going live): serve the folder over http://localhost
+  (e.g. `python3 -m http.server`) and load BOTH the control window and the
+  OBS display source from that same http://localhost URL. localStorage is
+  per-origin+per-profile, so a bare file:// operator window on a different
+  profile will NOT sync to OBS's CEF and its audio plays out the laptop
+  speakers, never into the stream. One origin fixes both sync AND audio.
+
+  SYNC: operator writes a single localStorage object `packMamaAuction`;
+  the display reads it via the `storage` event (bonus) + a 500ms poll
+  (the real mechanism). A `rev` nonce bumps on every action so repeated
+  values still re-fire the bump / extend / SOLD animations. State persists
+  in localStorage, so a browser refresh keeps the current card.
+
+  AUDIO: HTMLAudioElement (new Audio('./sounds/hit.mp3')) — NOT fetch +
+  decodeAudioData — so the real samples play under file:// AND https.
+  Falls back silently if the files are absent.
+
+  MOTION: transform / opacity only (GPU-cheap at 30fps). Every glow is a
+  STATIC text/box-shadow, never animated per frame.
+-->
+<style>
+  /* ---- self-hosted fonts, kept beside this file (no CDN) ---- */
+  @font-face{font-family:'Anton';font-style:normal;font-weight:400;font-display:swap;
+    src:url('anton-latin.woff2') format('woff2')}
+  @font-face{font-family:'Oswald';font-style:normal;font-weight:400 700;font-display:swap;
+    src:url('oswald-latin-var.woff2') format('woff2')}
+
+  *{box-sizing:border-box;margin:0}
+  html,body{height:100%;width:100%;background:transparent;overflow:hidden;
+    font-family:'Oswald','Avenir Next',sans-serif;-webkit-user-select:none;user-select:none;
+    -webkit-font-smoothing:antialiased}
+
+  /* ============================================================
+     THEME LAYER — "Clean Broadcast": flat chips (skew 0), thin gold
+     keylines, restrained gold, calm motion, solid lower-third panels
+     for MLB-Network legibility over a busy cam. A different visual
+     style is a ~15-line swap of just these custom properties.
+     ============================================================ */
+  :root{
+    --pm-accent:#f5b40a;          /* gold action           */
+    --pm-accent-2:#ffcf4d;        /* warm gold hi-light    */
+    --pm-bid:#f7bd1e;             /* current-bid number    */
+    --pm-text:#f3edff;            /* primary text          */
+    --pm-text2:#cbb8ef;           /* lavender secondary    */
+    --pm-purple:#3a1d68;          /* leader/brand chip base*/
+    --pm-purple-2:#5a2ea0;        /* leader chip hi        */
+    --pm-panel:#170d29;           /* data surface          */
+    --pm-panel-2:#0e0819;         /* data surface deep     */
+    --pm-keyline:#f5b40a;         /* thin gold rule        */
+    --pm-hair:rgba(245,180,10,.32); /* hairline border     */
+    --pm-ring:#f5b40a;            /* timer ring stroke     */
+    --pm-ring-track:#241638;      /* timer ring track      */
+    --pm-scrim:rgba(11,6,20,.80); /* legibility scrim (AA) */
+    --pm-scrim-soft:rgba(11,6,20,.55);
+    --pm-glow:0 0 20px rgba(245,180,10,.42);   /* STATIC   */
+    --pm-glow-soft:0 0 12px rgba(245,180,10,.30);
+    --pm-skew:0deg;              /* CLEAN = flat (broadcast-net uses -12deg) */
+    --pm-radius:10px;
+    --pm-once:#ffb300;           /* going once amber      */
+    --pm-twice:#ff4040;          /* going twice red-hot   */
+  }
+
+  .anton{font-family:'Anton','Arial Black',sans-serif;text-transform:uppercase;line-height:.94;
+    letter-spacing:.5px}
+  .clip{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* thin-panel = the calm broadcast lower-third: solid-ish scrim, hairline
+     border, single gold top rule. Used for every data surface. */
+  .panel{background:linear-gradient(180deg,var(--pm-panel) 0%,var(--pm-panel-2) 100%);
+    border:1px solid var(--pm-hair);border-top:3px solid var(--pm-keyline);
+    border-radius:var(--pm-radius);box-shadow:0 6px 26px rgba(0,0,0,.45)}
+  .scrim{background:var(--pm-scrim);border-radius:var(--pm-radius)}
+
+  .pm-auction{position:fixed;inset:0;width:1080px;height:1920px;color:var(--pm-text)}
+
+  /* ---------- 0-150  BRAND BAR (host-safe, decorative only) ---------- */
+  .pm-a-brand{position:absolute;top:0;left:0;right:0;height:150px;padding:0 40px;
+    display:flex;align-items:center;justify-content:space-between;
+    /* top-down dark scrim so the white wordmark + LIVE chip never wash out
+       over a bright card/hands. Fades to transparent so the cam stays clean. */
+    background:linear-gradient(180deg,rgba(11,6,20,.72) 0%,rgba(11,6,20,.34) 62%,rgba(11,6,20,0) 100%)}
+  .pm-a-brand .wm{font-size:60px;color:#fff;letter-spacing:2px;
+    /* dark stroke + layered shadow = legible on ANY background, scrim or not */
+    -webkit-text-stroke:2px rgba(9,5,16,.9);paint-order:stroke fill;
+    text-shadow:0 2px 10px rgba(0,0,0,.85),0 0 3px rgba(0,0,0,.9)}
+  .pm-a-brand .wm .amp{color:var(--pm-accent)}
+  .pm-a-live{display:flex;align-items:center;gap:12px;height:52px;padding:0 20px;
+    background:var(--pm-scrim);border:1px solid var(--pm-hair);border-radius:8px}
+  .pm-a-live .dot{width:16px;height:16px;border-radius:50%;background:#ff3b3b;
+    box-shadow:0 0 12px rgba(255,59,59,.85)}
+  .pm-a-live .lbl{font-size:30px;color:#fff;letter-spacing:3px}
+
+  /* ---------- 154-270  SCOREBOARD BUG (momentum / social proof) ---------- */
+  .pm-a-scoreboard{position:absolute;top:154px;left:40px;right:40px;height:116px;display:flex;gap:16px}
+  .pm-seg{flex:1;display:flex;align-items:center;justify-content:center;
+    transform:skewX(var(--pm-skew))}
+  .pm-seg .in{transform:skewX(calc(-1*var(--pm-skew)));display:flex;align-items:center;gap:14px}
+  .pm-seg .ico{font-size:40px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+  .pm-seg .val{font-size:46px;color:#fff}
+  .pm-seg.gold .val{color:var(--pm-accent);text-shadow:var(--pm-glow-soft)}
+
+  /* ---------- 286-620  BID HUD (the hero) ---------- */
+  .pm-a-hud{position:absolute;top:286px;left:40px;right:40px;height:334px}
+  .pm-a-ring{position:absolute;left:0;top:0;width:240px;height:240px;
+    filter:drop-shadow(0 3px 10px rgba(0,0,0,.5))}
+  .pm-a-secs{position:absolute;left:0;top:0;width:240px;height:240px;display:flex;
+    align-items:center;justify-content:center;font-size:96px;color:#fff}
+  .pm-a-secs .u{font-size:26px;color:var(--pm-text2);position:absolute;bottom:44px;letter-spacing:3px}
+  .pm-a-extend{position:absolute;left:24px;top:-34px;font-size:34px;color:var(--pm-accent);
+    letter-spacing:1px;white-space:nowrap;text-shadow:var(--pm-glow);opacity:0;pointer-events:none}
+  .pm-a-extend.pop{animation:extendPop .9s ease-out}
+
+  .pm-a-bid{position:absolute;left:264px;right:0;top:0;height:240px;padding:16px 22px 12px;
+    text-align:right;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+  .pm-a-bid .kick{font:700 30px 'Oswald';letter-spacing:6px;color:var(--pm-text2);margin-bottom:2px}
+  .pm-a-bid .num{font-size:172px;color:var(--pm-bid);line-height:.9;
+    text-shadow:var(--pm-glow);-webkit-text-stroke:3px #17100a;paint-order:stroke fill;
+    transform-origin:right center;will-change:transform}
+  .pm-a-bid .num.bump{animation:bidBump .45s cubic-bezier(.2,1.2,.4,1)}
+
+  .pm-a-leader{position:absolute;left:0;right:0;top:254px;height:80px;display:flex;
+    align-items:center;justify-content:center;gap:16px;overflow:hidden;
+    background:linear-gradient(180deg,var(--pm-purple-2),var(--pm-purple));
+    border:1px solid rgba(245,180,10,.30);border-top:3px solid var(--pm-keyline);
+    border-radius:var(--pm-radius);box-shadow:0 6px 22px rgba(0,0,0,.45)}
+  .pm-a-leader .crown{font-size:42px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
+  .pm-a-leader .who{font-size:48px;color:#fff;max-width:760px}
+  .pm-a-leader .who b{color:var(--pm-accent-2)}
+  .pm-a-leader.swap{animation:leaderSwap .5s ease}
+
+  /* ---------- 660-1140  SPOTLIGHT (transparent window over the card) ---------- */
+  .pm-a-spot{position:absolute;top:660px;left:310px;width:460px;height:480px;
+    border:3px solid var(--pm-keyline);border-radius:6px;
+    box-shadow:0 0 0 1px rgba(0,0,0,.4),0 10px 40px rgba(0,0,0,.35),inset 0 0 40px rgba(0,0,0,.18)}
+  .pm-a-spot .bracket{position:absolute;width:54px;height:54px;border:7px solid var(--pm-accent);
+    filter:drop-shadow(0 1px 3px rgba(0,0,0,.6))}
+  .pm-a-spot .tl{top:-3px;left:-3px;border-right:0;border-bottom:0}
+  .pm-a-spot .tr{top:-3px;right:-3px;border-left:0;border-bottom:0}
+  .pm-a-spot .bl{bottom:-3px;left:-3px;border-right:0;border-top:0}
+  .pm-a-spot .br{bottom:-3px;right:-3px;border-left:0;border-top:0}
+  .pm-a-spot img{width:100%;height:100%;object-fit:contain;display:none;border-radius:3px}
+  .pm-a-spot.hasimg img{display:block}
+  .pm-a-spot.hasimg{background:var(--pm-panel-2)}
+
+  .pm-a-rarity{position:absolute;top:634px;right:302px;height:64px;padding:0 24px;
+    display:flex;align-items:center;transform:skewX(var(--pm-skew));
+    background:linear-gradient(180deg,var(--pm-accent-2),var(--pm-accent));
+    border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+  .pm-a-rarity .in{transform:skewX(calc(-1*var(--pm-skew)));font-size:34px;color:#1c1204;
+    letter-spacing:1px}
+  .pm-a-rarity.empty{display:none}
+
+  /* ---------- 1140-1240  NAME PLATE ---------- */
+  .pm-a-name{position:absolute;top:1140px;left:40px;right:40px;height:100px;
+    padding:12px 20px;display:flex;flex-direction:column;justify-content:center}
+  .pm-a-name .nm{font-size:56px;color:#fff}
+  .pm-a-name .dt{font:500 30px 'Oswald';color:var(--pm-text2);margin-top:4px}
+  .pm-a-name .dt:empty{display:none}
+
+  /* ---------- 1250-1330  ON DECK (forward FOMO) ---------- */
+  .pm-a-ondeck{position:absolute;top:1250px;left:40px;right:40px;height:80px;
+    display:flex;align-items:center;gap:18px;padding:0 20px}
+  .pm-a-ondeck .k{font-size:28px;color:var(--pm-accent);letter-spacing:2px;flex:none}
+  .pm-a-ondeck img{width:64px;height:64px;object-fit:cover;border-radius:8px;
+    border:1px solid var(--pm-hair);display:none;flex:none}
+  .pm-a-ondeck.hasimg img{display:block}
+  .pm-a-ondeck .od{font:600 32px 'Oswald';color:var(--pm-text)}
+  .pm-a-ondeck.empty{opacity:.45}
+
+  /* ============================================================
+     STATE OVERLAYS (absolute, above chrome, driven by data-phase)
+     ============================================================ */
+  .pm-a-urgency{position:absolute;top:286px;left:40px;right:40px;height:114px;display:none;
+    align-items:center;justify-content:center;gap:20px;font-size:88px;border-radius:var(--pm-radius);
+    border:2px solid currentColor}
+  .pm-a-urgency .txt{text-shadow:0 2px 14px rgba(0,0,0,.6)}
+  .pm-auction[data-phase="once"] .pm-a-urgency{display:flex;color:var(--pm-once);
+    background:linear-gradient(180deg,rgba(255,179,0,.22),rgba(11,6,20,.72));
+    animation:pulseOnce 1.1s ease-in-out infinite}
+  .pm-auction[data-phase="twice"] .pm-a-urgency{display:flex;color:var(--pm-twice);
+    background:linear-gradient(180deg,rgba(255,64,64,.26),rgba(11,6,20,.74));
+    animation:pulseTwice .6s ease-in-out infinite}
+
+  .pm-a-sold{position:absolute;top:560px;left:0;right:0;height:580px;display:none;
+    flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    background:radial-gradient(closest-side,var(--pm-scrim),rgba(11,6,20,0) 74%)}
+  .pm-auction[data-phase="sold"] .pm-a-sold{display:flex;animation:soldSlam .55s cubic-bezier(.2,1.4,.3,1)}
+  .pm-a-sold .stamp{font-size:250px;color:var(--pm-accent);transform:rotate(-7deg);
+    text-shadow:0 6px 0 #b5232d,0 0 34px rgba(245,180,10,.5);-webkit-text-stroke:3px #17100a;
+    paint-order:stroke fill;letter-spacing:6px}
+  /* .who + .fin sit over the FADED outer band of the radial scrim, so they get
+     their own dark stroke + shadow to survive a bright frame. */
+  .pm-a-sold .who{font-size:62px;color:#fff;margin-top:14px;
+    -webkit-text-stroke:1.5px rgba(9,5,16,.85);paint-order:stroke fill;
+    text-shadow:0 2px 10px rgba(0,0,0,.85),0 0 4px rgba(0,0,0,.7)}
+  .pm-a-sold .who b{color:var(--pm-accent-2)}
+  .pm-a-sold .fin{font-size:72px;color:var(--pm-accent);margin-top:8px;
+    -webkit-text-stroke:2px #17100a;paint-order:stroke fill;
+    text-shadow:var(--pm-glow),0 2px 10px rgba(0,0,0,.85)}
+
+  /* ============================================================
+     OPERATOR PANEL — right rail, z max. Hidden by default; shown by
+     ?op=1 (and toggled by "c") — both only registered in the ?op=1
+     context. The OBS display source uses neither, so it never appears.
+     ============================================================ */
+  .pm-a-op{position:fixed;top:0;right:0;width:372px;height:100%;z-index:99999;
+    background:#0a0713;border-left:2px solid var(--pm-keyline);
+    padding:16px;display:none;flex-direction:column;gap:9px;overflow-y:auto;
+    font-family:'Oswald',sans-serif;box-shadow:-10px 0 40px rgba(0,0,0,.6)}
+  .pm-a-op.show{display:flex}
+  .pm-a-op h4{font:700 15px 'Oswald';letter-spacing:2px;color:var(--pm-accent);
+    text-transform:uppercase;margin:6px 0 2px}
+  .pm-a-op .hint{font:400 12px 'Oswald';color:#8a7bb0;line-height:1.4;margin:-2px 0 4px}
+  .pm-a-op label{font:600 12px 'Oswald';letter-spacing:1px;color:#9c8bbf;
+    text-transform:uppercase;margin-bottom:-4px}
+  .pm-a-op input{height:52px;background:var(--pm-panel);border:1px solid #4a2f78;border-radius:8px;
+    color:#fff;font:400 20px 'Oswald';padding:0 12px;width:100%}
+  .pm-a-op input:focus{outline:none;border-color:var(--pm-accent)}
+  .pm-a-op .row{display:flex;gap:9px}
+  .pm-a-op .row input{width:auto;flex:1}
+  .pm-a-op button{border:0;border-radius:10px;font:400 30px 'Anton';cursor:pointer;
+    text-transform:uppercase;letter-spacing:1px;color:#1c1204}
+  .pm-a-op .big{height:88px}
+  .pm-a-op .half{height:74px;flex:1}
+  .pm-a-op .b-bid{background:linear-gradient(180deg,var(--pm-accent-2),var(--pm-accent))}
+  .pm-a-op .b-once{background:linear-gradient(180deg,#ffc861,var(--pm-once));color:#2a1a00}
+  .pm-a-op .b-twice{background:linear-gradient(180deg,#ff6b6b,var(--pm-twice));color:#fff}
+  .pm-a-op .b-sold{background:linear-gradient(180deg,#4ad07a,#2fbf5b);color:#04210f}
+  .pm-a-op .b-next{background:linear-gradient(180deg,#7a4fd0,var(--pm-purple-2));color:#fff}
+  .pm-a-op .b-reset{height:46px;font-size:20px;background:#241638;color:#cbb8ef}
+  .pm-a-op .quick{display:flex;flex-wrap:wrap;gap:6px}
+  .pm-a-op .quick button{height:38px;font:600 16px 'Oswald';padding:0 12px;border-radius:6px;
+    background:#241638;color:#e7ddff;border:1px solid #4a2f78}
+
+  /* ============================================================
+     KEYFRAMES — transform/opacity only. Glows are static, not animated.
+     ============================================================ */
+  @keyframes bidBump{0%{transform:scale(1)}42%{transform:scale(1.04)}100%{transform:scale(1)}}
+  @keyframes leaderSwap{0%{transform:translateY(12px);opacity:0}100%{transform:translateY(0);opacity:1}}
+  @keyframes extendPop{0%{transform:translateY(8px);opacity:0}22%{opacity:1}100%{transform:translateY(-24px);opacity:0}}
+  @keyframes pulseOnce{0%,100%{transform:scale(1)}50%{transform:scale(1.025)}}
+  @keyframes pulseTwice{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+  @keyframes soldSlam{0%{transform:scale(.5);opacity:0}68%{transform:scale(1.07)}100%{transform:scale(1);opacity:1}}
+</style>
+</head>
+<body>
+<div class="pm-auction" data-phase="live" id="ax">
+
+  <!-- 0-150 brand bar (host-safe) -->
+  <div class="pm-a-brand">
+    <div class="wm anton">PACK <span class="amp">MAMA</span></div>
+    <div class="pm-a-live"><span class="dot"></span><span class="lbl anton">LIVE</span></div>
+  </div>
+
+  <!-- 154-270 scoreboard bug -->
+  <div class="pm-a-scoreboard">
+    <div class="pm-seg panel"><div class="in"><span class="ico">🃏</span><span class="val anton" id="ax-sold">0 SOLD</span></div></div>
+    <div class="pm-seg panel gold"><div class="in"><span class="val anton" id="ax-total">$0 TONIGHT</span></div></div>
+  </div>
+
+  <!-- 286-620 bid HUD -->
+  <div class="pm-a-hud">
+    <svg class="pm-a-ring" viewBox="0 0 240 240" aria-hidden="true">
+      <circle cx="120" cy="120" r="108" fill="none" stroke="var(--pm-ring-track)" stroke-width="18"/>
+      <circle id="ax-ring" cx="120" cy="120" r="108" fill="none" stroke="var(--pm-ring)" stroke-width="18"
+        stroke-linecap="round" transform="rotate(-90 120 120)"
+        stroke-dasharray="678.58" stroke-dashoffset="0"/>
+    </svg>
+    <div class="pm-a-secs anton" id="ax-secs">30<span class="u">SEC</span></div>
+    <div class="pm-a-extend anton" id="ax-ext">RESET 30s</div>
+
+    <div class="pm-a-bid scrim">
+      <div class="kick">CURRENT BID</div>
+      <div class="num anton" id="ax-bid">$0</div>
+    </div>
+
+    <div class="pm-a-leader" id="ax-leader-box">
+      <span class="crown">👑</span>
+      <span class="who anton clip" id="ax-leader">@— LEADS</span>
+    </div>
+  </div>
+
+  <!-- 660-1140 spotlight window (transparent over the card) -->
+  <div class="pm-a-spot" id="ax-spot">
+    <span class="bracket tl"></span><span class="bracket tr"></span>
+    <span class="bracket bl"></span><span class="bracket br"></span>
+    <img id="ax-img" alt="">
+  </div>
+  <div class="pm-a-rarity empty" id="ax-rarity-box"><span class="in anton" id="ax-rarity"></span></div>
+
+  <!-- 1140-1240 name plate -->
+  <div class="pm-a-name scrim">
+    <div class="nm anton clip" id="ax-name">CARD NAME</div>
+    <div class="dt clip" id="ax-dt"></div>
+  </div>
+
+  <!-- 1250-1330 on deck -->
+  <div class="pm-a-ondeck scrim empty" id="ax-ondeck-box">
+    <span class="k anton">ON DECK</span>
+    <img id="ax-odimg" alt="">
+    <span class="od clip" id="ax-od">—</span>
+  </div>
+
+  <!-- state overlays -->
+  <div class="pm-a-urgency" id="ax-urg"><span class="txt anton" id="ax-urg-txt">GOING ONCE</span></div>
+
+  <div class="pm-a-sold">
+    <div class="stamp anton">SOLD</div>
+    <div class="who anton">👑 <b id="ax-win">@—</b></div>
+    <div class="fin anton" id="ax-fin">$0 FINAL</div>
+  </div>
+
+  <!-- operator panel (registered ONLY when ?op=1) -->
+  <div class="pm-a-op" id="ax-op">
+    <h4>Pack Mama · Auction Control</h4>
+    <div class="hint">Press <b>c</b> to hide/show. This panel exists only in the ?op=1 context and never appears on the OBS display source.</div>
+
+    <label>Card image URL</label>
+    <input id="op-img" placeholder="https://… or ./photos/card.jpg">
+    <label>Card name</label>
+    <input id="op-card" placeholder="e.g. Mike Trout 2011 Update RC">
+    <label>Details</label>
+    <input id="op-dt" placeholder="set · year · parallel">
+    <label>Rarity chip</label>
+    <input id="op-rar" placeholder="1 OF 1 / PSA 10 / /25">
+    <div class="quick" id="op-rar-quick">
+      <button data-r="1 OF 1">1 OF 1</button><button data-r="/25">/25</button>
+      <button data-r="/99">/99</button><button data-r="PSA 10">PSA 10</button>
+      <button data-r="RC AUTO">RC AUTO</button><button data-r="REFRACTOR">REFRACTOR</button>
+      <button data-r="">clear</button>
+    </div>
+
+    <label>Current bid $</label>
+    <div class="row">
+      <input id="op-bid" inputmode="numeric" placeholder="0">
+      <input id="op-bidder" placeholder="@bidder">
+    </div>
+    <label>On deck (next card)</label>
+    <input id="op-od" placeholder="next card name">
+    <label>On deck image URL (optional)</label>
+    <input id="op-odimg" placeholder="https://… promotes to spotlight on NEXT LOT">
+
+    <button class="big b-bid" onclick="bidUp()">BID UP ▲</button>
+    <div class="row">
+      <button class="half b-once" onclick="setPhase('once')">GOING ONCE</button>
+      <button class="half b-twice" onclick="setPhase('twice')">GOING TWICE</button>
+    </div>
+    <button class="big b-sold" onclick="doSold()">SOLD 🔨</button>
+    <button class="big b-next" onclick="nextLot()">NEXT LOT →</button>
+    <button class="b-reset" onclick="resetLive()">reset to LIVE (no clear)</button>
+    <button class="b-reset" onclick="clearAll()">clear tonight totals</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var Q = new URLSearchParams(location.search);
+  var KEY = 'packMamaAuction';
+  var RING_C = 678.58;          // 2·π·108
+  var DEFAULT_SECS = 30;
+
+  // ---- operator context: the panel + its hotkey exist ONLY when ?op=1. ----
+  // The plain OBS DISPLAY source (no query string) never registers the keydown
+  // listener, so it is PHYSICALLY incapable of revealing the operator rail on
+  // stream — a stray "c" from OBS Interact, a hardware hotkey passthrough, or an
+  // option-(a) same-URL CEF source has no toggle path to attach to.
+  var IS_OP = (Q.get('op') === '1');
+  var opEl = document.getElementById('ax-op');
+  if (IS_OP){
+    opEl.classList.add('show');
+    addEventListener('keydown', function(e){
+      var t = e.target;
+      var typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA');
+      if (typing) return;                       // don't toggle while typing in the panel
+      if (e.key === 'c' || e.key === 'C' || e.code === 'Backquote'){
+        opEl.classList.toggle('show');
+      }
+    });
+  }
+
+  // ---- audio: HTMLAudioElement (works under file:// AND https). No fetch(). ----
+  // Preloaded persistent elements: both samples are fetched to disk cache at
+  // startup so SOLD's 520KB cheer fires INSTANTLY (no first-play load stall),
+  // and playback runs from whichever context render()'s poll fires — click the
+  // DISPLAY source once via OBS Interact at show start so its own poll can route
+  // the real samples into the CAPTURED browser audio (not the operator laptop's
+  // speakers). currentTime=0 lets a sound retrigger while still playing.
+  var SND = {
+    hit:   mkAudio('./sounds/hit.mp3',   0.9),
+    cheer: mkAudio('./sounds/cheer.mp3', 1.0)
+  };
+  function mkAudio(src, vol){
+    var a = new Audio();
+    a.preload = 'auto';
+    a.volume = vol;
+    a.src = src;
+    try{ a.load(); }catch(e){}
+    return a;
+  }
+  function play(name){
+    var a = SND[name];
+    if (!a) return;
+    try{
+      a.currentTime = 0;
+      var p = a.play();
+      if (p && p.catch) p.catch(function(){});
+    }catch(e){}
+  }
+
+  // ---- shared state ----
+  function read(){ try{ return JSON.parse(localStorage.getItem(KEY)) || {}; }catch(e){ return {}; } }
+  function write(o){
+    o.rev = (o.rev || 0) + 1;
+    try{ localStorage.setItem(KEY, JSON.stringify(o)); }catch(e){}
+    render(o);
+  }
+  function money(n){
+    n = Number(String(n).replace(/[^0-9.]/g,'')) || 0;
+    return '$' + n.toLocaleString('en-US');
+  }
+  function numOf(n){ return Number(String(n).replace(/[^0-9.]/g,'')) || 0; }
+
+  // ---- DOM refs ----
+  var ax        = document.getElementById('ax');
+  var elSold    = document.getElementById('ax-sold');
+  var elTotal   = document.getElementById('ax-total');
+  var elBid     = document.getElementById('ax-bid');
+  var elLeader  = document.getElementById('ax-leader');
+  var elLeadBox = document.getElementById('ax-leader-box');
+  var elRing    = document.getElementById('ax-ring');
+  var elSecs    = document.getElementById('ax-secs');
+  var elExt     = document.getElementById('ax-ext');
+  var elSpot    = document.getElementById('ax-spot');
+  var elImg     = document.getElementById('ax-img');
+  var elRarBox  = document.getElementById('ax-rarity-box');
+  var elRar     = document.getElementById('ax-rarity');
+  var elName    = document.getElementById('ax-name');
+  var elDt      = document.getElementById('ax-dt');
+  var elOdBox   = document.getElementById('ax-ondeck-box');
+  var elOdImg   = document.getElementById('ax-odimg');
+  var elOd      = document.getElementById('ax-od');
+  var elUrgTxt  = document.getElementById('ax-urg-txt');
+  var elWin     = document.getElementById('ax-win');
+  var elFin     = document.getElementById('ax-fin');
+
+  var lastRev = -1, lastBid = null, lastBidder = null, lastPhase = null;
+
+  function setText(el, v){ if (el) el.textContent = v; }
+  function once(el, cls){ if(!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+
+  function render(s){
+    s = s || {};
+    var phase = s.phase || 'live';
+    ax.setAttribute('data-phase', phase);
+
+    setText(elSold,  (s.soldCount || 0) + ' SOLD');
+    setText(elTotal, money(s.total) + ' TONIGHT');
+    setText(elBid,   money(s.bid));
+
+    // leader chip (keep the @ styled)
+    var bidder = (s.bidder || '').replace(/^@/, '');
+    elLeader.innerHTML = bidder
+      ? ('@<b>' + escapeHtml(bidder) + '</b> LEADS')
+      : '@— LEADS';
+
+    // rarity chip (hidden when empty)
+    if (s.rarity){ setText(elRar, s.rarity); elRarBox.classList.remove('empty'); }
+    else { elRarBox.classList.add('empty'); }
+
+    setText(elName, s.card || 'CARD NAME');
+    setText(elDt,   s.details || '');
+
+    // on-deck
+    if (s.ondeck){ setText(elOd, s.ondeck); elOdBox.classList.remove('empty'); }
+    else { setText(elOd, '—'); elOdBox.classList.add('empty'); }
+    if (s.ondeckImg){ elOdImg.src = s.ondeckImg; elOdBox.classList.add('hasimg'); }
+    else { elOdBox.classList.remove('hasimg'); }
+
+    // spotlight image (optional still fill; transparent otherwise)
+    if (s.img){ if (elImg.getAttribute('src') !== s.img) elImg.src = s.img; elSpot.classList.add('hasimg'); }
+    else { elSpot.classList.remove('hasimg'); elImg.removeAttribute('src'); }
+
+    // urgency label
+    setText(elUrgTxt, phase === 'twice' ? 'GOING TWICE' : 'GOING ONCE');
+
+    // sold takeover
+    setText(elWin, '@' + (String(s.winner || s.bidder || '—').replace(/^@/,'')));
+    setText(elFin, money(s.final != null ? s.final : s.bid) + ' FINAL');
+
+    // indicative timer ring (HOLDS at 0, never advances the machine)
+    tick(s.ends);
+
+    // rev-driven one-shot animations + sound
+    if (s.rev !== lastRev){
+      var revChanged = (lastRev !== -1);
+      if (revChanged && s.bid !== lastBid && numOf(s.bid) > 0){
+        once(elBid, 'bump'); once(elExt, 'pop'); play('hit');
+      }
+      if (revChanged && s.bidder !== lastBidder && bidder){
+        once(elLeadBox, 'swap');
+      }
+      if (revChanged && phase !== lastPhase){
+        if (phase === 'twice') play('hit');
+        if (phase === 'sold')  play('cheer');
+      }
+      lastRev = s.rev; lastBid = s.bid; lastBidder = s.bidder; lastPhase = phase;
+    }
+  }
+
+  // COARSE indicator by design: the ring/seconds step on the 500ms poll rather
+  // than sweeping per-frame. This is intentional — a per-frame stroke-dashoffset
+  // mutation is an SVG repaint (not a GPU transform), which we avoid on the OBS
+  // box. The number is a soft "time left" cue, not the source of truth; the
+  // operator drives SOLD manually, so a stepping ring is acceptable.
+  function tick(ends){
+    var left, secs;
+    if (ends){
+      left = Math.max(0, (ends - Date.now()) / 1000);   // indicative countdown
+    } else {
+      left = DEFAULT_SECS;                                // idle / pre-lot: show a full ready ring
+    }
+    secs = Math.ceil(left);
+    // keep the "SEC" label child intact
+    elSecs.childNodes[0].nodeValue = String(secs);
+    var frac = Math.min(1, left / DEFAULT_SECS);
+    elRing.setAttribute('stroke-dashoffset', String(RING_C * (1 - frac)));
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  // ================= OPERATOR ACTIONS (write shared object) =================
+  function v(id){ var e = document.getElementById(id); return e ? e.value.trim() : ''; }
+
+  window.bidUp = function(){
+    var s = read();
+    if (v('op-img')    !== '') s.img     = v('op-img');
+    if (v('op-card')   !== '') s.card    = v('op-card');
+    if (v('op-dt')     !== '') s.details = v('op-dt');
+    if (v('op-rar')    !== '') s.rarity  = v('op-rar');
+    if (v('op-bid')    !== '') s.bid     = numOf(v('op-bid'));
+    if (v('op-bidder') !== '') s.bidder  = v('op-bidder').replace(/^@/,'');
+    if (v('op-od')     !== '') s.ondeck  = v('op-od');
+    if (v('op-odimg')  !== '') s.ondeckImg = v('op-odimg');
+    s.ends  = Date.now() + DEFAULT_SECS * 1000;   // each bid resets to a full 30s indicative timer
+    s.phase = 'live';
+    write(s);
+  };
+
+  window.setPhase = function(p){
+    var s = read();
+    s.phase = p;
+    write(s);
+  };
+
+  window.doSold = function(){
+    var s = read();
+    s.phase     = 'sold';
+    s.winner    = s.bidder || '';
+    s.final     = numOf(s.bid);
+    s.soldCount = (Number(s.soldCount) || 0) + 1;
+    s.total     = (Number(s.total) || 0) + numOf(s.bid);
+    write(s);
+  };
+
+  window.nextLot = function(){
+    var s = read();
+    s.card    = s.ondeck || '';
+    s.img     = s.ondeckImg || '';
+    s.details = '';
+    s.rarity  = '';
+    s.bid     = 0;
+    s.bidder  = '';
+    s.ondeck  = '';
+    s.ondeckImg = '';
+    s.winner  = '';
+    s.final   = 0;
+    s.phase   = 'live';
+    s.ends    = Date.now() + DEFAULT_SECS * 1000;
+    write(s);
+    // reflect into the inputs so operator sees the promoted card
+    setInput('op-img', s.img); setInput('op-card', s.card);
+    setInput('op-dt',''); setInput('op-rar',''); setInput('op-bid','');
+    setInput('op-bidder',''); setInput('op-od',''); setInput('op-odimg','');
+  };
+
+  window.resetLive = function(){
+    var s = read(); s.phase = 'live'; write(s);
+  };
+
+  window.clearAll = function(){
+    var s = read(); s.soldCount = 0; s.total = 0; write(s);
+  };
+
+  function setInput(id, val){ var e = document.getElementById(id); if (e) e.value = val || ''; }
+
+  // rarity quick-pick buttons
+  var rq = document.getElementById('op-rar-quick');
+  if (rq){
+    rq.addEventListener('click', function(e){
+      var b = e.target.closest('button'); if (!b) return;
+      var r = b.getAttribute('data-r');
+      setInput('op-rar', r);
+      var s = read(); if (r) s.rarity = r; else delete s.rarity; write(s);
+    });
+  }
+
+  // seed operator inputs from any persisted state on load
+  (function seed(){
+    var s = read();
+    setInput('op-img', s.img); setInput('op-card', s.card); setInput('op-dt', s.details);
+    setInput('op-rar', s.rarity); setInput('op-bid', s.bid ? numOf(s.bid) : '');
+    setInput('op-bidder', s.bidder ? '@' + s.bidder : ''); setInput('op-od', s.ondeck);
+    setInput('op-odimg', s.ondeckImg);
+  })();
+
+  // ================= SYNC: storage event (bonus) + 500ms poll (real) =================
+  addEventListener('storage', function(e){ if (e.key === KEY) render(read()); });
+  setInterval(function(){
+    var s = read();
+    // re-render when rev changed (operator wrote) or whenever a live timer must advance
+    if (s.rev !== lastRev || s.ends) render(s);
+  }, 500);
+
+  // first paint
+  render(read());
+})();
+</script>
+</body>
+</html>
