@@ -794,33 +794,60 @@ class Component extends DCLogic {
     }
     if (this.actx && this.actx.state === 'suspended') this.actx.resume();
   }
-  // decode the mp3 clips into buffers once (context may be suspended — decoding still works)
+  // Preload pooled <audio> elements. No fetch / XHR / decodeAudioData / AudioContext —
+  // immune to the file:// opaque-origin block that killed decodeAudioData in OBS/CEF
+  // (fetch of a local file is CORS-blocked there). Works under file:// AND https.
+  // NOTE: deliberately NOT MediaElementAudioSourceNode — createMediaElementSource
+  // CORS-taints file:// media and would emit SILENCE while play() still resolves.
   loadClips() {
-    this.ensureAudio(); if (!this.actx || this._clipsLoading) return;
-    this._clipsLoading = true; this.clips = this.clips || {}; this._playing = this._playing || {};
-    const load = (name, url) => fetch(url).then(r => r.arrayBuffer())
-      .then(b => this.actx.decodeAudioData(b)).then(buf => { this.clips[name] = buf; }).catch(() => {});
-    load('hit', './sounds/hit.mp3');
-    load('cheer', './sounds/cheer.mp3');
+    if (this._clips) return;
+    this._clips = {};
+    const CFG = {
+      hit:   { url: './sounds/hit.mp3',   vol: 0.9, pool: 3 },  // 34KB  bat crack
+      cheer: { url: './sounds/cheer.mp3', vol: 1.0, pool: 2 },  // 520KB stadium roar
+    };
+    Object.keys(CFG).forEach((name) => {
+      const cfg = CFG[name], els = [];
+      for (let k = 0; k < cfg.pool; k++) {
+        const a = new Audio();
+        a.src = cfg.url;            // relative path resolves under file:// AND https
+        a.preload = 'auto';
+        a.volume = cfg.vol;         // level-matched per clip
+        try { a.load(); } catch (e) {}   // warm the decoder so the first play isn't late
+        els.push(a);
+      }
+      this._clips[name] = { cfg, els, i: 0 };
+    });
   }
-  // play a decoded clip; stops any prior instance of the same clip so rapid taps /
-  // back-to-back wins don't pile up. Returns false if the clip isn't ready.
+  // Play a real sample via HTMLAudioElement. Returns false only when there's no element
+  // at all (caller runs the synth). el.error or a rejected play() promise fires the synth
+  // fallback so the moment is NEVER silently dropped. Round-robins a small pool so rapid
+  // taps / back-to-back wins overlap instead of cutting each other off.
   playClip(name, opts) {
-    if (!this.actx || !this.clips || !this.clips[name]) return false;
+    const rec = this._clips && this._clips[name];
+    if (!rec) return false;                                  // no asset -> caller's synth
     opts = opts || {};
-    const prev = this._playing[name];
-    if (prev) { try { prev.stop(); } catch (e) {} }
-    const c = this.actx, t = c.currentTime;
-    const src = c.createBufferSource(); src.buffer = this.clips[name];
-    const g = c.createGain(); const vol = opts.gain != null ? opts.gain : 1;
-    g.gain.value = vol; src.connect(g); g.connect(this.master);
-    if (opts.maxDur) {   // cap long clips (the cheer) with a short fade so they don't overrun
-      const d = Math.min(opts.maxDur, this.clips[name].duration);
-      g.gain.setValueAtTime(vol, t + Math.max(0, d - 0.6));
-      g.gain.linearRampToValueAtTime(0.0001, t + d);
-      src.start(t); src.stop(t + d);
-    } else { src.start(t); }
-    this._playing[name] = src;
+    const synth = () => { if (name === 'cheer') this.cheer(); else this.crack(0, 0.8); };
+    const a = rec.els[rec.i]; rec.i = (rec.i + 1) % rec.els.length;
+    if (a.error) { synth(); return true; }                   // decode failed -> synth, not silence
+    if (a._cap)  { clearTimeout(a._cap);  a._cap  = null; }  // clear THIS element's prior cap/fade
+    if (a._fade) { clearInterval(a._fade); a._fade = null; }
+    try { a.pause(); a.currentTime = 0; } catch (e) {}
+    a.volume = opts.gain != null ? Math.min(1, opts.gain) : rec.cfg.vol;
+    let p;
+    try { p = a.play(); }                                    // NO fetch, NO actx, NO CORS taint
+    catch (e) { synth(); return true; }
+    if (p && p.catch) p.catch(() => synth());                // async reject (autoplay/interrupt) -> synth
+    if (opts.maxDur) {                                       // cap the long cheer, per element
+      const startFade = Math.max(0, opts.maxDur - 0.6) * 1000;
+      a._cap = setTimeout(() => {
+        a._fade = setInterval(() => {
+          if (a.volume > 0.06) { a.volume = Math.max(0, a.volume - 0.08); }
+          else { clearInterval(a._fade); a._fade = null;
+                 try { a.pause(); a.currentTime = 0; } catch (e) {} }
+        }, 60);
+      }, startFade);
+    }
     return true;
   }
   // cached white-noise buffer, reused by the crack and crowd sounds
@@ -897,11 +924,14 @@ class Component extends DCLogic {
   }
   sfx(kind) {
     if (!this.state.soundOn) return;
-    this.ensureAudio(); if (!this.actx) return;
-    if (kind === 'click') { if (!this.playClip('hit', { gain: 0.9 })) this.crack(0, 0.8); }       // ball off the bat (sample; synth fallback)
-    else if (kind === 'coin') { [880, 1174, 1568].forEach((f, i) => this.tone(f, i * 0.07, 0.12, 'square', 0.13)); }
+    // Real samples FIRST, before any AudioContext guard, so a broken/blocked actx can't
+    // stop the mp3s. playClip uses HTMLAudioElement (plays local files under file:// in OBS);
+    // on any failure it runs the synth fallback so the moment is never silently dropped.
+    if (kind === 'click') { if (!this.playClip('hit',   { gain: 0.9 }))          { this.ensureAudio(); this.crack(0, 0.8); } return; }  // ball off the bat
+    if (kind === 'win')   { if (!this.playClip('cheer', { gain: 1, maxDur: 6 })) { this.ensureAudio(); this.cheer(); }       return; }  // stadium crowd
+    this.ensureAudio(); if (!this.actx) return;   // synth-only cues below need the context
+    if (kind === 'coin') { [880, 1174, 1568].forEach((f, i) => this.tone(f, i * 0.07, 0.12, 'square', 0.13)); }
     else if (kind === 'stamp') { this.tone(150, 0, 0.18, 'sine', 0.4); this.tone(90, 0.02, 0.22, 'sine', 0.3); }
-    else if (kind === 'win') { if (!this.playClip('cheer', { gain: 1, maxDur: 9 })) this.cheer(); }  // stadium crowd (sample; synth fallback)
   }
 
   // ---------- mode arming ----------
